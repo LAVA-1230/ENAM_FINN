@@ -47,9 +47,21 @@ export default function AlertsPage() {
     return () => clearTimeout(id);
   }, [t, s]);
 
-  async function put(body: object) {
-    const next = await send<Settings>("/settings", "PUT", body);
-    qc.setQueryData(["settings"], next);
+  async function put(body: Omit<Partial<Settings>, "tier_overrides"> & { tier_overrides?: Record<string, string | null> }) {
+    const prev = qc.getQueryData<Settings>(["settings"]);
+    // flip the control at once; the server's answer replaces it (or the old value comes back on error).
+    // Tier changes wait for the server: it owns the category list they show in.
+    const { tier_overrides: _tiers, ...flat } = body;
+    if (prev) qc.setQueryData<Settings>(["settings"], { ...prev, ...flat,
+      tripwire_defaults: { ...prev.tripwire_defaults, ...(flat.tripwire_defaults || {}) } });
+    let next: Settings;
+    try {
+      next = await send<Settings>("/settings", "PUT", body);
+    } catch (e) {
+      if (prev) qc.setQueryData(["settings"], prev);
+      throw e;
+    }
+    qc.setQueryData<Settings>(["settings"], (cur) => ({ ...next, preview: next.preview ?? cur?.preview ?? prev!.preview }));
     qc.invalidateQueries({ queryKey: ["brief"] });
     qc.invalidateQueries({ queryKey: ["health"] });
   }

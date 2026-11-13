@@ -54,6 +54,7 @@ def fetch_meta(key: str) -> dict:
 def store(db: Session, key: str, rows: list[tuple[date, float, float | None]]) -> int:
     if not rows:
         return 0
+    db.info.pop("closes", None)  # portfolio._closes cache is stale once prices change
     # one query per key: the DB can be a long round trip away (Neon from a US runner), so no per-row selects
     existing = {r.date: r for r in db.scalars(select(PriceDaily).where(PriceDaily.key == key))}
     n = 0

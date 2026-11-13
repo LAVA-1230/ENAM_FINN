@@ -29,3 +29,8 @@
 - Now: new tripwire hits and P0 price/volume/sector events (latest session only, so backfill never floods) call `notify_event`. Dedupe stays one notification per event.
 - Telegram added as a second channel (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). Inbox row always; Web Push and Telegram are independent, so either one failing never blocks the other. `channel` is inbox / webpush / telegram / both (column is 10 chars).
 - Verified on a DB copy with faked senders: tripwire hit, price P0, no duplicates on re-run, each channel down in turn.
+
+## 2026-11-13: slow Alerts page on the deployed app
+- Surprise: `GET /api/settings` took 77 s on Render (439 queries at ~175 ms each: Render is far from Neon Singapore). Every checkbox waited for the same payload, because it re-ran the week-of-alerts preview.
+- Fix: `portfolio._closes` loads each key's price history once per DB session (`prices.store` clears it); a save that does not move a threshold skips the preview; the Alerts page flips controls at once and rolls back on error.
+- Queries: settings 439 -> 93, checkbox save 439 -> 1, portfolio 151 -> 105, brief 50 -> 31, eod job 706 -> 348. Responses byte-identical apart from the current-time window.

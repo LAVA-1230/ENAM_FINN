@@ -35,7 +35,7 @@ def preview_count(db: Session, price_pct: float, volume_x: float, impact_pct: fl
             "volume": sum(1 for i in items if i["kind"] == "volume"), "sessions": sessions}
 
 
-def payload(db: Session) -> dict:
+def payload(db: Session, with_preview: bool = True) -> dict:
     s = get_settings_row(db)
     out = {k: getattr(s, k) for k in FIELDS}
     out["last_brief_seen_at"] = iso(s.last_brief_seen_at)
@@ -44,7 +44,8 @@ def payload(db: Session) -> dict:
     out["tripwire_labels"] = TRIPWIRE_DEFAULTS
     out["categories"] = [{"key": c, "label": CATEGORY_LABEL.get(c, c), "default": DEFAULT_TIER.get(c, "P2"),
                           "tier": (s.tier_overrides or {}).get(c) or DEFAULT_TIER.get(c, "P2")} for c in EDITABLE_CATEGORIES]
-    out["preview"] = preview_count(db, s.price_pct, s.volume_x, s.impact_pct)
+    if with_preview:  # the costly part (re-evaluates a week of price signals); skipped when thresholds did not move
+        out["preview"] = preview_count(db, s.price_pct, s.volume_x, s.impact_pct)
     return out
 
 
@@ -98,7 +99,8 @@ def put_settings(body: SettingsIn, db: Session = DB):
         for d in sessions:
             price_signals.store(db, s, price_signals.evaluate(db, s, d))
         db.commit()
-    return payload(db)
+        return payload(db)
+    return payload(db, with_preview=False)
 
 
 def _apply_overrides(db: Session, old: dict, new: dict):

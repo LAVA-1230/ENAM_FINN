@@ -39,11 +39,15 @@ class Move:
 
 
 def _closes(db: Session, key: str, upto: date | None, n: int) -> list[PriceDaily]:
-    q = select(PriceDaily).where(PriceDaily.key == key)
+    """Last n closes on/before upto. Each key's history is loaded once per session (one query, not one per call):
+    the DB can be a long round trip away. prices.store clears this cache."""
+    cache = db.info.setdefault("closes", {})
+    if key not in cache:
+        cache[key] = db.scalars(select(PriceDaily).where(PriceDaily.key == key).order_by(PriceDaily.date)).all()
+    rows = cache[key]
     if upto:
-        q = q.where(PriceDaily.date <= upto)
-    rows = db.scalars(q.order_by(PriceDaily.date.desc()).limit(n)).all()
-    return list(reversed(rows))
+        rows = [r for r in rows if r.date <= upto]
+    return list(rows[-n:]) if n > 0 else []
 
 
 def index_return(db: Session, key: str, d: date) -> float | None:
