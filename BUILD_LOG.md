@@ -16,3 +16,9 @@
 - Taste check: with the logo removed, FINN is still recognisable by the serif quotes on the highlighter. Removed: coloured status pills on promises (verdicts are now words with weight).
 - Verified: 24 backend tests pass; Playwright mobile smoke test passes at 390 px light, 390 px dark and 360 px with no horizontal scroll; replay snapshot of 599 responses served correctly.
 - Pending (human prerequisites, left blank on purpose): LLM key, web-search key, VAPID keys, GitHub repo, Render, Vercel, Neon accounts.
+
+## 2026-11-13: deployment, cron moved onto GitHub runners
+- Deployed: Render (API), Vercel (frontend), Neon (Postgres). Local finn.db copied into Neon with a one-off pg8000 script (laptop Application Control blocks psycopg's DLL).
+- Surprise: `eod_prices` triggered on Render hung for 17+ min with no result (same job: 11 s on the laptop; Yahoo answers the laptop in 0.5 s). Yahoo throttles Render's IPs, and the background-thread design hid it: GitHub showed green, the job_run row stayed "running".
+- Decision: cron runs jobs directly on the GitHub runner against Neon (`python -m app.jobs.cli job <name>`), so pass/fail and logs are real. Repo variable `CRON_MODE=render` restores the old POST-to-Render path; `snapshot` always runs on Render (it writes a file that Render serves).
+- Hardening: Yahoo requests time out after 15 s (was 45 s); a failed job is recorded from a fresh DB session; runs still unfinished after 2 h are closed as "Did not finish".

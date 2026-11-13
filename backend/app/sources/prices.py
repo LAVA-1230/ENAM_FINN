@@ -15,6 +15,7 @@ from ..models import PriceDaily
 log = logging.getLogger(__name__)
 IST = timezone(timedelta(hours=5, minutes=30))
 CHART = "https://query1.finance.yahoo.com/v8/finance/chart/{}"
+TIMEOUT = 15  # seconds; Yahoo answers in <1s when it is not throttling us, so fail fast
 
 
 def yahoo_symbol(key: str) -> str:
@@ -24,7 +25,7 @@ def yahoo_symbol(key: str) -> str:
 def fetch_history(key: str, range_: str = "6mo") -> list[tuple[date, float, float | None]]:
     """[(date, close, volume)] for completed sessions, oldest first."""
     data = http.get(CHART.format(quote(yahoo_symbol(key), safe="^.")),
-                    params={"range": range_, "interval": "1d"}, min_gap=0.3).json()
+                    params={"range": range_, "interval": "1d"}, min_gap=0.3, timeout=TIMEOUT).json()
     res = (data.get("chart") or {}).get("result") or []
     if not res:
         return []
@@ -45,7 +46,7 @@ def fetch_history(key: str, range_: str = "6mo") -> list[tuple[date, float, floa
 
 def fetch_meta(key: str) -> dict:
     data = http.get(CHART.format(quote(yahoo_symbol(key), safe="^.")),
-                    params={"range": "5d", "interval": "1d"}, min_gap=0.3).json()
+                    params={"range": "5d", "interval": "1d"}, min_gap=0.3, timeout=TIMEOUT).json()
     res = (data.get("chart") or {}).get("result") or []
     return res[0]["meta"] if res else {}
 

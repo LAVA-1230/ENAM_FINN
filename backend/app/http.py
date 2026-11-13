@@ -47,9 +47,10 @@ def _retryable(e: BaseException) -> bool:
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1.5, max=10),
        retry=retry_if_exception(_retryable), reraise=True)
 def get(url: str, params: dict | None = None, headers: dict | None = None,
-        min_gap: float = 1.0) -> httpx.Response:
+        min_gap: float = 1.0, timeout: float | None = None) -> httpx.Response:
     _throttle(url, min_gap)
-    r = client().get(url, params=params, headers=headers or {})
+    extra = {"timeout": timeout} if timeout else {}
+    r = client().get(url, params=params, headers=headers or {}, **extra)
     r.raise_for_status()
     return r
 

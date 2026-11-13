@@ -2,7 +2,7 @@
 import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import yaml
 from sqlalchemy import select
@@ -17,27 +17,44 @@ from ..sources import prices
 log = logging.getLogger(__name__)
 
 
+STALE_AFTER = timedelta(hours=2)
+
+
 def run(job: str, fn, **kw) -> dict:
     db = SessionLocal()
+    _close_stale(db, job)
     jr = JobRun(job=job, started_at=datetime.utcnow())
     db.add(jr)
     db.commit()
+    jr_id = jr.id
     try:
         stats = fn(db, **kw) or {}
-        jr.ok, jr.stats = True, stats
+        jr.ok, jr.stats, jr.finished_at = True, stats, datetime.utcnow()
         db.commit()
         return {"ok": True, "job": job, "stats": stats}
     except Exception as e:  # noqa: BLE001
-        db.rollback()
-        jr = db.get(JobRun, jr.id)
-        jr.ok, jr.error = False, f"{e}\n{traceback.format_exc()[-1500:]}"
         log.exception("job %s failed", job)
-        db.commit()
+        _mark_failed(jr_id, f"{e}\n{traceback.format_exc()[-1500:]}")
         return {"ok": False, "job": job, "error": str(e)}
     finally:
-        jr.finished_at = datetime.utcnow()
-        db.commit()
         db.close()
+
+
+def _mark_failed(jr_id: int, error: str):
+    """Fresh session: the job's own connection may be the thing that broke."""
+    with SessionLocal() as s:
+        jr = s.get(JobRun, jr_id)
+        jr.ok, jr.error, jr.finished_at = False, error, datetime.utcnow()
+        s.commit()
+
+
+def _close_stale(db, job: str):
+    """A run with no finish time after 2h was killed (server stopped or hung); say so instead of 'running'."""
+    cutoff = datetime.utcnow() - STALE_AFTER
+    for jr in db.scalars(select(JobRun).where(JobRun.job == job, JobRun.finished_at.is_(None),
+                                              JobRun.started_at < cutoff)).all():
+        jr.ok, jr.error, jr.finished_at = False, "Did not finish (server stopped or job hung)", datetime.utcnow()
+    db.commit()
 
 
 def seed(db, **_) -> dict:

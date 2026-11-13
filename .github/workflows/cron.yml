@@ -1,5 +1,11 @@
 # Scheduled jobs (spec 13.2). GitHub cron is UTC; IST = UTC + 5:30.
-# Repo secrets needed: FINN_API (e.g. https://finn-api.onrender.com) and JOB_TOKEN.
+#
+# Two modes, picked by the repo variable CRON_MODE (Settings > Secrets and variables > Actions > Variables):
+#   direct (default) - the job runs HERE on the GitHub runner, straight against Neon. Real logs, real pass/fail.
+#                      Secrets: DATABASE_URL, LLM_API_KEY (+ optional VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT).
+#   render           - the old way: POST to the Render API, which runs the job in a background thread.
+#                      Secrets: FINN_API (e.g. https://finn-api.onrender.com) and JOB_TOKEN.
+# `snapshot` always goes to Render: it writes a file that Render's replay mode serves.
 name: cron
 on:
   schedule:
@@ -11,25 +17,71 @@ on:
     - cron: "0 16 * * *"        # snapshot 21:30 IST
   workflow_dispatch:
     inputs:
-      job: { description: "Job to run", required: true, default: "ingest_filings" }
+      job:
+        description: "Job to run"
+        required: true
+        default: ingest_filings
+        type: choice
+        options: [ingest_filings, eod_prices, build_digest, tripwires, financials, docs_refresh, snapshot]
+concurrency:
+  group: finn-cron        # one job at a time, so two jobs never write the same rows together
+  cancel-in-progress: false
 jobs:
   call:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Pick job
         id: pick
         run: |
           case "${{ github.event.schedule }}" in
-            "30 3-14 * * 1-5") echo "job=ingest_filings" >> $GITHUB_OUTPUT ;;
-            "0 13 * * 1-5")    echo "job=eod_prices" >> $GITHUB_OUTPUT ;;
-            "0 2 * * *"|"30 13 * * *") echo "job=build_digest" >> $GITHUB_OUTPUT ;;
-            "30 15 * * *")     echo "job=docs_refresh" >> $GITHUB_OUTPUT ;;
-            "0 16 * * *")      echo "job=snapshot" >> $GITHUB_OUTPUT ;;
-            *)                 echo "job=${{ github.event.inputs.job }}" >> $GITHUB_OUTPUT ;;
+            "30 3-14 * * 1-5") job=ingest_filings ;;
+            "0 13 * * 1-5")    job=eod_prices ;;
+            "0 2 * * *"|"30 13 * * *") job=build_digest ;;
+            "30 15 * * *")     job=docs_refresh ;;
+            "0 16 * * *")      job=snapshot ;;
+            *)                 job="${{ github.event.inputs.job }}" ;;
           esac
-      - name: Wake the API (free hosts sleep)
+          mode="${{ vars.CRON_MODE || 'direct' }}"
+          if [ "$job" = "snapshot" ]; then mode=render; fi
+          echo "job=$job" >> $GITHUB_OUTPUT
+          echo "mode=$mode" >> $GITHUB_OUTPUT
+          echo "Running $job in $mode mode"
+
+      # --- direct mode ---
+      - if: steps.pick.outputs.mode == 'direct'
+        uses: actions/checkout@v4
+      - if: steps.pick.outputs.mode == 'direct'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - if: steps.pick.outputs.mode == 'direct'
+        name: Install
+        working-directory: backend
+        run: pip install -q -r requirements.txt
+      - if: steps.pick.outputs.mode == 'direct'
+        name: Run job
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          LLM_PROVIDER: gemini
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT || 'mailto:finn@example.com' }}
+          TZ: Asia/Kolkata
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "::error::Add the DATABASE_URL repo secret (Neon connection string)"; exit 1; fi
+          python -m app.jobs.cli job ${{ steps.pick.outputs.job }}
+
+      # --- render mode (and snapshot) ---
+      - if: steps.pick.outputs.mode == 'render'
+        name: Wake the API (free hosts sleep)
         run: curl -s --max-time 90 "${{ secrets.FINN_API }}/api/health" > /dev/null || true
-      - name: Run job
+      - if: steps.pick.outputs.mode == 'render'
+        name: Run job on Render
         run: |
           curl -sf -X POST -H "Authorization: Bearer ${{ secrets.JOB_TOKEN }}" \
             "${{ secrets.FINN_API }}/api/jobs/${{ steps.pick.outputs.job }}"

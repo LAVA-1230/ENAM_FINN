@@ -7,6 +7,7 @@ production Postgres and run these from a laptop: same code, same DB).
   python -m app.jobs.cli research PIDILITIND
   python -m app.jobs.cli snapshot --label demo
   python -m app.jobs.cli bootstrap        # seed + prices + 30 days of filings + research demo set
+  python -m app.jobs.cli job build_digest # any job in runner.JOBS; exits 1 on failure (GitHub Actions cron)
 """
 import argparse
 import json
@@ -39,6 +40,10 @@ def main(argv=None):
     b = sub.add_parser("bootstrap")
     b.add_argument("--days", type=int, default=30)
     b.add_argument("--skip-research", action="store_true")
+    j = sub.add_parser("job")
+    j.add_argument("name", choices=sorted(runner.JOBS))
+    j.add_argument("--days", type=int, default=None)
+    j.add_argument("--label", type=str, default=None)
     a = p.parse_args(argv)
 
     init_db()
@@ -59,6 +64,11 @@ def main(argv=None):
         out = runner.run("financials", runner.load_financials)
     elif a.cmd == "tripwires":
         out = runner.run("tripwires", runner.run_tripwires)
+    elif a.cmd == "job":
+        kw = {k: v for k, v in {"days": a.days, "label": a.label}.items() if v is not None}
+        out = runner.run(a.name, runner.JOBS[a.name], **kw)
+        print(json.dumps(out, indent=1, default=str))
+        return 0 if out["ok"] else 1
     elif a.cmd == "bootstrap":
         import time
         out = []
