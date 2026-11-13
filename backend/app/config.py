@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     vapid_private_key: str = ""
     vapid_subject: str = "mailto:finn@example.com"
 
+    telegram_bot_token: str = ""  # from @BotFather; urgent alerts also go to Telegram when set
+    telegram_chat_id: str = ""    # comma-separated for several chats
+
     data_dir: Path = BACKEND_DIR / "data"
     replay_default: bool = False
     run_jobs_on_start: bool = False

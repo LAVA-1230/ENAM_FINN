@@ -23,3 +23,9 @@
 - Decision: cron runs jobs directly on the GitHub runner against Neon (`python -m app.jobs.cli job <name>`), so pass/fail and logs are real. Repo variable `CRON_MODE=render` restores the old POST-to-Render path; `snapshot` always runs on Render (it writes a file that Render serves).
 - Hardening: Yahoo requests time out after 15 s (was 45 s); a failed job is recorded from a fresh DB session; runs still unfinished after 2 h are closed as "Did not finish".
 - Correction (same day): the slowness was not Yahoo. One `eod_prices` run made 6,259 DB queries (a select per stored price row, plus price signals re-evaluated for 25 sessions). Fine on local SQLite (11 s); against Neon in Singapore from a US host (~0.2 s per round trip) that is ~20 min, matching Render's 18.5 min run. Fix: one select per symbol in `prices.store`, and daily runs re-evaluate signals for 5 sessions (25 on an empty DB and in bootstrap). Now 706 queries, same output.
+
+## 2026-11-13: urgent alerts reach the user on every path
+- Gap found after deploy: only urgent filings notified. Urgent price moves and new tripwire hits were stored as P0 events but never sent; no device had subscribed, so nothing reached a phone.
+- Now: new tripwire hits and P0 price/volume/sector events (latest session only, so backfill never floods) call `notify_event`. Dedupe stays one notification per event.
+- Telegram added as a second channel (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). Inbox row always; Web Push and Telegram are independent, so either one failing never blocks the other. `channel` is inbox / webpush / telegram / both (column is 10 chars).
+- Verified on a DB copy with faked senders: tripwire hit, price P0, no duplicates on re-run, each channel down in turn.

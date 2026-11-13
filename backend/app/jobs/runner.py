@@ -10,7 +10,7 @@ from sqlalchemy import select
 from .. import portfolio
 from ..db import SessionLocal, init_db
 from ..models import Company, Holding, JobRun, PriceDaily
-from ..push import ingest, price_signals, tripwires
+from ..push import ingest, notify, price_signals, tripwires
 from ..push.ingest import get_settings_row
 from ..sources import prices
 
@@ -118,7 +118,12 @@ def eod_prices(db, days: int = 120, signals_sessions: int | None = None, **_) ->
                           .order_by(PriceDaily.date.desc()).limit(signals_sessions)).all()
     created = 0
     for d in sorted(sessions):
-        created += len(price_signals.store(db, s, price_signals.evaluate(db, s, d)))
+        evs = price_signals.store(db, s, price_signals.evaluate(db, s, d))
+        created += len(evs)
+        if sessions and d == sessions[0]:  # only the latest session notifies; older ones are backfill
+            for ev in evs:
+                if ev.tier == "P0":
+                    notify.notify_event(db, ev, db.get(Company, ev.company_id) if ev.company_id else None)
     db.commit()
     tw = tripwires.evaluate_all(db)
     return {"rows_added": stored, "failed": failed, "price_events": created, "tripwires": tw}

@@ -38,7 +38,8 @@ def test(db: Session = DB):
     n = notify.send(db, "Test alert from FINN", "This is how an urgent item will reach you.", "/inbox", force=True)
     db.commit()
     return {"ok": True, "channel": n.channel,
-            "note": None if n.channel == "webpush" else "Saved to your inbox. Push needs VAPID keys and a subscription."}
+            "note": None if n.channel != "inbox" else
+            "Saved to your inbox only. Phone push needs VAPID keys and Enable push; Telegram needs TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID."}
 
 
 @router.get("/notifications")

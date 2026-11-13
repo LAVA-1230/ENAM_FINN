@@ -119,14 +119,19 @@ def evaluate_all(db: Session) -> dict:
                 tier, score, reasons = score_event("tripwire", sig, s.tier_overrides)
                 key = f"tripwire:{t.id}:{datetime.utcnow().date().isoformat()}"
                 if not db.scalar(select(Event.id).where(Event.dedupe_key == key)):
-                    db.add(Event(company_id=c.id, kind="tripwire", category="tripwire", tier=tier, score=score,
+                    ev = Event(company_id=c.id, kind="tripwire", category="tripwire", tier=tier, score=score,
                                  reasons=reasons, dedupe_key=key, event_date=datetime.utcnow(),
                                  title=f"Tripwire hit: {t.label}",
                                  metric_line=f"Now {fmt_value(t, v)}, your limit {t.op} {fmt_value(t, t.threshold)}",
                                  impact_line=f"{pos['weight']:.1f}% of your book" if pos else None,
                                  enrichment={"tripwire_id": t.id, "value": v, "threshold": t.threshold, "op": t.op},
                                  context=[f"Set {'by FINN from your holding data' if t.source == 'auto' else 'by you'}"],
-                                 facts=[], verify_ok=True))
+                                 facts=[], verify_ok=True)
+                    db.add(ev)
+                    db.flush()
+                    if ev.tier == "P0":
+                        from . import notify
+                        notify.notify_event(db, ev, c)
     db.flush()
     return counts
 

@@ -2,7 +2,8 @@
 #
 # Two modes, picked by the repo variable CRON_MODE (Settings > Secrets and variables > Actions > Variables):
 #   direct (default) - the job runs HERE on the GitHub runner, straight against Neon. Real logs, real pass/fail.
-#                      Secrets: DATABASE_URL, LLM_API_KEY (+ optional VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT).
+#                      Secrets: DATABASE_URL, LLM_API_KEY (+ optional VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT,
+#                      TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, FRONTEND_ORIGIN for the link in Telegram messages).
 #   render           - the old way: POST to the Render API, which runs the job in a background thread.
 #                      Secrets: FINN_API (e.g. https://finn-api.onrender.com) and JOB_TOKEN.
 # `snapshot` always goes to Render: it writes a file that Render's replay mode serves.
@@ -71,6 +72,9 @@ jobs:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT || 'mailto:finn@example.com' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
           TZ: Asia/Kolkata
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "::error::Add the DATABASE_URL repo secret (Neon connection string)"; exit 1; fi
