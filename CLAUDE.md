@@ -1,0 +1,12 @@
+# FINN — working rules for Claude Code
+- The spec is FINN_BUILD_SPEC.md; FINN_DESIGN_SYSTEM.md overrides its section 12.2. Follow the milestone order (section 14) and cut order.
+- Keep the app runnable after every milestone; commit with a clear message per milestone.
+- Log decisions and surprises in BUILD_LOG.md (date, what, why).
+- Never hard-code demo companies into logic. Research must work for any NSE ticker.
+- Numbers are computed in Python; the LLM extracts and words, never calculates.
+- Every Pull sentence needs a citation; unverified numbers are hidden, not guessed.
+- VERIFY live endpoints/HTML before coding parsers; keep raw responses as test fixtures.
+- Ask the user before creating accounts, spending money or changing the scope.
+- Mobile-first: check every screen at 390×844 (run `npm run test:mobile` with SHOTS_DIR set and look at the screenshots).
+- Frontend colours: only the tokens in tailwind.config.ts. The highlighter (`.mark` / `<Quote>`) is only for verbatim source text.
+- Tests: `cd backend && python -m pytest -q`; `cd frontend && npm run build`.

@@ -1,0 +1,31 @@
+# Mock portfolio: 18 NSE holdings, about Rs 1 crore at Nov 2026 prices.
+# Picked with scripts/scout.py for a demo-rich mix (results, KMP changes,
+# ratings, order wins, large moves) across sectors and sizes.
+# quantity = target weight x Rs 1 cr / price on 12 Nov 2026; avg_cost = price a year earlier.
+holdings:
+  - {symbol: HDFCBANK,   name: HDFC Bank,            sector: Banks,              sector_index: "^NSEBANK",   quantity: 985,  avg_cost: 991}
+  - {symbol: AXISBANK,   name: Axis Bank,            sector: Banks,              sector_index: "^NSEBANK",   quantity: 447,  avg_cost: 1269}
+  - {symbol: BAJFINANCE, name: Bajaj Finance,        sector: Financials,         sector_index: "^CNXFIN",    quantity: 628,  avg_cost: 987}
+  - {symbol: INFY,       name: Infosys,              sector: IT,                 sector_index: "^CNXIT",     quantity: 608,  avg_cost: 1615}
+  - {symbol: TECHM,      name: Tech Mahindra,        sector: IT,                 sector_index: "^CNXIT",     quantity: 225,  avg_cost: 1591}
+  - {symbol: SUNPHARMA,  name: Sun Pharma,           sector: Pharma,             sector_index: "^CNXPHARMA", quantity: 318,  avg_cost: 1720}
+  - {symbol: LUPIN,      name: Lupin,                sector: Pharma,             sector_index: "^CNXPHARMA", quantity: 199,  avg_cost: 2110}
+  - {symbol: DABUR,      name: Dabur India,          sector: FMCG,               sector_index: "^CNXFMCG",   quantity: 1044, avg_cost: 504}
+  - {symbol: BRITANNIA,  name: Britannia Industries, sector: FMCG,               sector_index: "^CNXFMCG",   quantity: 104,  avg_cost: 6031}
+  - {symbol: M&M,        name: Mahindra & Mahindra,  sector: Auto,               sector_index: "^CNXAUTO",   quantity: 206,  avg_cost: 3709}
+  - {symbol: BAJAJ-AUTO, name: Bajaj Auto,           sector: Auto,               sector_index: "^CNXAUTO",   quantity: 46,   avg_cost: 9343}
+  - {symbol: LT,         name: Larsen & Toubro,      sector: Infrastructure,     sector_index: "^CNXINFRA",  quantity: 168,  avg_cost: 4084}
+  - {symbol: ULTRACEMCO, name: UltraTech Cement,     sector: Cement,             sector_index: "^CNXINFRA",  quantity: 41,   avg_cost: 11784}
+  - {symbol: TITAN,      name: Titan Company,        sector: Consumer,           sector_index: "^CNXCONSUM", quantity: 122,  avg_cost: 4052}
+  - {symbol: TRENT,      name: Trent,                sector: Retail,             sector_index: "^CNXCONSUM", quantity: 157,  avg_cost: 4279}
+  - {symbol: RELIANCE,   name: Reliance Industries,  sector: Energy,             sector_index: "^CNXENERGY", quantity: 597,  avg_cost: 1570}
+  - {symbol: DIXON,      name: Dixon Technologies,   sector: Consumer durables,  sector_index: "NIFTY_CONSR_DURBL.NS", quantity: 23, avg_cost: 12102}
+  - {symbol: VOLTAS,     name: Voltas,               sector: Consumer durables,  sector_index: "NIFTY_CONSR_DURBL.NS", quantity: 269, avg_cost: 1361}
+
+# Companies outside the portfolio to demo Pull (research) on.
+# Nothing in the code depends on this list: research works on any NSE ticker.
+research:
+  - {symbol: PIDILITIND, name: Pidilite Industries}
+  - {symbol: POLYCAB,    name: Polycab India}
+  - {symbol: PERSISTENT, name: Persistent Systems}
+  - {symbol: APOLLOHOSP, name: Apollo Hospitals}

@@ -1,0 +1,35 @@
+# Scheduled jobs (spec 13.2). GitHub cron is UTC; IST = UTC + 5:30.
+# Repo secrets needed: FINN_API (e.g. https://finn-api.onrender.com) and JOB_TOKEN.
+name: cron
+on:
+  schedule:
+    - cron: "30 3-14 * * 1-5"   # ingest_filings hourly, 09:00-20:00 IST, weekdays
+    - cron: "0 13 * * 1-5"      # eod_prices 18:30 IST
+    - cron: "0 2 * * *"         # build_digest 07:30 IST
+    - cron: "30 13 * * *"       # build_digest 19:00 IST
+    - cron: "30 15 * * *"       # docs_refresh 21:00 IST
+    - cron: "0 16 * * *"        # snapshot 21:30 IST
+  workflow_dispatch:
+    inputs:
+      job: { description: "Job to run", required: true, default: "ingest_filings" }
+jobs:
+  call:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pick job
+        id: pick
+        run: |
+          case "${{ github.event.schedule }}" in
+            "30 3-14 * * 1-5") echo "job=ingest_filings" >> $GITHUB_OUTPUT ;;
+            "0 13 * * 1-5")    echo "job=eod_prices" >> $GITHUB_OUTPUT ;;
+            "0 2 * * *"|"30 13 * * *") echo "job=build_digest" >> $GITHUB_OUTPUT ;;
+            "30 15 * * *")     echo "job=docs_refresh" >> $GITHUB_OUTPUT ;;
+            "0 16 * * *")      echo "job=snapshot" >> $GITHUB_OUTPUT ;;
+            *)                 echo "job=${{ github.event.inputs.job }}" >> $GITHUB_OUTPUT ;;
+          esac
+      - name: Wake the API (free hosts sleep)
+        run: curl -s --max-time 90 "${{ secrets.FINN_API }}/api/health" > /dev/null || true
+      - name: Run job
+        run: |
+          curl -sf -X POST -H "Authorization: Bearer ${{ secrets.JOB_TOKEN }}" \
+            "${{ secrets.FINN_API }}/api/jobs/${{ steps.pick.outputs.job }}"

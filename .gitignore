@@ -1,0 +1,18 @@
+# secrets
+.env
+backend/.env
+frontend/.env.local
+# python
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+backend/finn.db
+backend/data/
+backend/scout_result.json
+# node
+frontend/node_modules/
+frontend/.next/
+frontend/test-results/
+frontend/playwright-report/
+frontend-start.log

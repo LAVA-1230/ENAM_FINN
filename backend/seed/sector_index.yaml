@@ -1,0 +1,36 @@
+# sector -> Yahoo Finance index symbol (all verified to return data on 12 Nov 2026).
+# Used for research companies that are not in portfolio.yaml. Unknown sector -> ^NSEI ("vs Nifty").
+nifty: "^NSEI"
+sectors:
+  Banks: "^NSEBANK"
+  Financials: "^CNXFIN"
+  IT: "^CNXIT"
+  Pharma: "^CNXPHARMA"
+  Healthcare: "NIFTY_HEALTHCARE.NS"
+  FMCG: "^CNXFMCG"
+  Auto: "^CNXAUTO"
+  Infrastructure: "^CNXINFRA"
+  Cement: "^CNXINFRA"
+  Consumer: "^CNXCONSUM"
+  Retail: "^CNXCONSUM"
+  Consumer durables: "NIFTY_CONSR_DURBL.NS"
+  Energy: "^CNXENERGY"
+  Metals: "^CNXMETAL"
+  Realty: "^CNXREALTY"
+  Chemicals: "NIFTY_CHEMICALS.NS"
+index_names:
+  "^NSEI": Nifty 50
+  "^NSEBANK": Nifty Bank
+  "^CNXFIN": Nifty Financial Services
+  "^CNXIT": Nifty IT
+  "^CNXPHARMA": Nifty Pharma
+  "NIFTY_HEALTHCARE.NS": Nifty Healthcare
+  "^CNXFMCG": Nifty FMCG
+  "^CNXAUTO": Nifty Auto
+  "^CNXINFRA": Nifty Infra
+  "^CNXCONSUM": Nifty Consumption
+  "NIFTY_CONSR_DURBL.NS": Nifty Consumer Durables
+  "^CNXENERGY": Nifty Energy
+  "^CNXMETAL": Nifty Metal
+  "^CNXREALTY": Nifty Realty
+  "NIFTY_CHEMICALS.NS": Nifty Chemicals
