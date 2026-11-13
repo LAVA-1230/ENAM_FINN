@@ -92,9 +92,11 @@ def index_keys(db) -> set[str]:
     return keys
 
 
-def eod_prices(db, days: int = 120, signals_sessions: int = 25, **_) -> dict:
+def eod_prices(db, days: int = 120, signals_sessions: int | None = None, **_) -> dict:
     rng = "6mo" if days > 60 else "3mo" if days > 25 else "1mo"
     keys = [c.symbol for c in db.scalars(select(Company)).all()] + sorted(index_keys(db))
+    if signals_sessions is None:  # a fresh DB needs the full lookback; a daily run only the last week (late fixes, holidays)
+        signals_sessions = 5 if prices.latest_date(db, portfolio.NIFTY) else 25
     stored, failed = 0, []
 
     def fetch(k):

@@ -54,11 +54,12 @@ def fetch_meta(key: str) -> dict:
 def store(db: Session, key: str, rows: list[tuple[date, float, float | None]]) -> int:
     if not rows:
         return 0
-    existing = {d for (d,) in db.execute(select(PriceDaily.date).where(PriceDaily.key == key))}
+    # one query per key: the DB can be a long round trip away (Neon from a US runner), so no per-row selects
+    existing = {r.date: r for r in db.scalars(select(PriceDaily).where(PriceDaily.key == key))}
     n = 0
     for d, c, v in rows:
         if d in existing:
-            row = db.scalar(select(PriceDaily).where(PriceDaily.key == key, PriceDaily.date == d))
+            row = existing[d]
             row.close, row.volume = c, v
         else:
             db.add(PriceDaily(key=key, date=d, close=c, volume=v))

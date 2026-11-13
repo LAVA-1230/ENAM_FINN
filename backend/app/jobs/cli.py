@@ -76,7 +76,7 @@ def main(argv=None):
                              ("financials", runner.load_financials, {}),
                              ("ingest_filings", runner.ingest_filings, {"days": a.days}),
                              # re-run price signals now that filings can explain moves
-                             ("eod_prices", runner.eod_prices, {"days": 10})):
+                             ("eod_prices", runner.eod_prices, {"days": 10, "signals_sessions": 25})):
             t0 = time.time()
             r = runner.run(name, fn, **kw)
             r["seconds"] = round(time.time() - t0, 1)
