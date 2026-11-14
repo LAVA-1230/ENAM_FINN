@@ -9,11 +9,11 @@
 # `snapshot` always goes to Render: it writes a file that Render's replay mode serves.
 #
 # Check-in: after each scheduled ingest/eod run, a portfolio summary goes to the inbox, phone push and Telegram
-# at most every CHECKIN_HOURS (repo variable; default 2, 0 = off). Run workflow > "checkin" sends one now.
+# at most every CHECKIN_HOURS (repo variable; default 1, 0 = off). Run workflow > "checkin" sends one now.
 name: cron
 on:
   schedule:
-    - cron: "30 3-14 * * 1-5"   # ingest_filings hourly, 09:00-20:00 IST, weekdays
+    - cron: "30 3-14 * * *"     # ingest_filings hourly, 09:00-20:00 IST, every day (weekends too, so alerts can be tested)
     - cron: "0 13 * * 1-5"      # eod_prices 18:30 IST
     - cron: "0 2 * * *"         # build_digest 07:30 IST
     - cron: "30 13 * * *"       # build_digest 19:00 IST
@@ -44,14 +44,14 @@ jobs:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
-      CHECKIN_HOURS: ${{ vars.CHECKIN_HOURS || '2' }}
+      CHECKIN_HOURS: ${{ vars.CHECKIN_HOURS || '1' }}
       TZ: Asia/Kolkata
     steps:
       - name: Pick job
         id: pick
         run: |
           case "${{ github.event.schedule }}" in
-            "30 3-14 * * 1-5") job=ingest_filings ;;
+            "30 3-14 * * *")   job=ingest_filings ;;
             "0 13 * * 1-5")    job=eod_prices ;;
             "0 2 * * *"|"30 13 * * *") job=build_digest ;;
             "30 15 * * *")     job=docs_refresh ;;

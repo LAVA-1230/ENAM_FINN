@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import { api, send } from "@/lib/api";
 import type { AskAnswer, Citation } from "@/lib/types";
-import { canDictate, canListen, dictate, speak } from "@/lib/voice";
+import { canDictate, canListen, dictate, speakParts } from "@/lib/voice";
 import type { AskContext } from "./providers";
-import { IconMic, IconSend, IconSpeaker } from "./icons";
+import { IconMic, IconPause, IconPlay, IconSend, IconSpeaker } from "./icons";
 import { BottomSheet } from "./ui";
 
 type Turn = { q: string; a?: AskAnswer; error?: string };
@@ -38,7 +38,10 @@ export function AskSheet({ ctx, onClose, onCite }: { ctx: AskContext | null; onC
   const [listening, setListening] = useState(false);
   const [suggested, setSuggested] = useState<string[]>([]);
   const [saved, setSaved] = useState<number | null>(null);
+  const [speech, setSpeech] = useState<{ turn: number; playing: boolean } | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
+  const stopSpeech = useRef<(() => void) | null>(null);
+  const speechPos = useRef(0);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,6 +54,14 @@ export function AskSheet({ ctx, onClose, onCite }: { ctx: AskContext | null; onC
     if (ctx.eventId) qs.set("event_id", String(ctx.eventId));
     api<{ suggested: string[] }>(`/ask/suggested?${qs}`).then((r) => setSuggested(r.suggested)).catch(() => setSuggested([]));
   }, [ctx]);
+
+  // Closing the sheet, switching context or leaving the page silences any answer being read.
+  useEffect(() => {
+    stopSpeech.current?.();
+    stopSpeech.current = null;
+    setSpeech(null);
+  }, [ctx]);
+  useEffect(() => () => stopSpeech.current?.(), []);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [turns]);
 
@@ -74,6 +85,23 @@ export function AskSheet({ ctx, onClose, onCite }: { ctx: AskContext | null; onC
     if (listening) { stopRef.current?.(); return; }
     setListening(true);
     stopRef.current = dictate((t) => setText(t), () => setListening(false));
+  }
+
+  /** Read aloud / Pause / Resume for one answer. Pause remembers the sentence, so Resume carries on from there. */
+  function readAloud(i: number, answer: string) {
+    stopSpeech.current?.();
+    stopSpeech.current = null;
+    if (speech?.turn === i && speech.playing) {
+      setSpeech({ turn: i, playing: false });
+      return;
+    }
+    const parts = answer.replace(/\[\d+\]/g, "").replace(/([.!?])\s+/g, "$1\n").split("\n").filter((p) => p.trim());
+    if (!parts.length) return;
+    const start = speech?.turn === i && speechPos.current < parts.length ? speechPos.current : 0;
+    speechPos.current = start;
+    stopSpeech.current = speakParts(parts.slice(start), (k) => { speechPos.current = start + k; },
+      () => { stopSpeech.current = null; speechPos.current = 0; setSpeech(null); });
+    setSpeech({ turn: i, playing: true });
   }
 
   async function saveNote(i: number, a: AskAnswer, q: string) {
@@ -136,8 +164,11 @@ export function AskSheet({ ctx, onClose, onCite }: { ctx: AskContext | null; onC
                 )}
                 <div className="mt-2 flex gap-4">
                   {canListen() && (
-                    <button className="flex min-h-[40px] items-center gap-1 text-sec text-link" onClick={() => speak(t.a!.answer)}>
-                      <IconSpeaker size={18} /> Read aloud
+                    <button className="flex min-h-[40px] items-center gap-1 text-sec text-link" aria-pressed={speech?.turn === i && speech.playing}
+                      onClick={() => readAloud(i, t.a!.answer)}>
+                      {speech?.turn === i
+                        ? (speech.playing ? <><IconPause size={18} /> Pause</> : <><IconPlay size={18} /> Resume</>)
+                        : <><IconSpeaker size={18} /> Read aloud</>}
                     </button>
                   )}
                   <button className="min-h-[40px] text-sec text-link" onClick={() => navigator.clipboard?.writeText(t.a!.answer.replace(/\[\d+\]/g, ""))}>Copy</button>
