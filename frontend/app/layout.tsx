@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed, IBM_Plex_Serif } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { Banners, BottomNav } from "@/components/shell";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 // Three voices of one superfamily: FINN speaks in sans, numbers in condensed, documents in serif.
@@ -19,15 +20,15 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   width: "device-width", initialScale: 1, viewportFit: "cover",
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#E6EBE7" }, { media: "(prefers-color-scheme: dark)", color: "#12171F" }],
+  // theme-color metas come from THEME_SCRIPT, not here (lib/theme.ts says why)
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${sans.variable} ${num.variable} ${quote.variable}`} suppressHydrationWarning>
       <head>
-        {/* apply the saved light/dark choice before first paint */}
-        <script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('finn-theme');if(t&&t!=='system')document.documentElement.setAttribute('data-theme',t)}catch(e){}" }} />
+        {/* applies the saved light/dark choice before first paint, and creates the theme-color metas (see lib/theme.ts) */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
         <Providers>

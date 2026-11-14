@@ -5,6 +5,7 @@ import { TopBar } from "@/components/shell";
 import { Button, ErrorLine, Num, SectionLabel, Segmented, Sheet, Skeleton, Toggle } from "@/components/ui";
 import { api, send } from "@/lib/api";
 import { enablePush, isIosNotInstalled } from "@/lib/push";
+import { applyTheme, type ThemeChoice } from "@/lib/theme";
 import type { Settings } from "@/lib/types";
 
 type Health = { replay: boolean; snapshots: string[]; last: Record<string, { label: string | null }>; eod_date: string | null;
@@ -65,11 +66,9 @@ export default function AlertsPage() {
     qc.invalidateQueries({ queryKey: ["brief"] });
     qc.invalidateQueries({ queryKey: ["health"] });
   }
-  function applyTheme(v: string) {
+  function chooseTheme(v: string) {
     setTheme(v);
-    try { localStorage.setItem("finn-theme", v); } catch {}
-    if (v === "system") document.documentElement.removeAttribute("data-theme");
-    else document.documentElement.setAttribute("data-theme", v);
+    applyTheme(v as ThemeChoice);
   }
 
   const changed = s && t && (t.price_pct !== s.price_pct || t.volume_x !== s.volume_x || t.impact_pct !== s.impact_pct);
@@ -147,7 +146,7 @@ export default function AlertsPage() {
 
           <SectionLabel>Display</SectionLabel>
           <div className="px-4">
-            <Segmented label="Theme" value={theme} onChange={applyTheme}
+            <Segmented label="Theme" value={theme} onChange={chooseTheme}
               options={[{ value: "system", label: "Match phone" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }]} />
           </div>
 

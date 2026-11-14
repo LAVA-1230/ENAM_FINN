@@ -44,6 +44,7 @@ def main(argv=None):
     j.add_argument("name", choices=sorted(runner.JOBS))
     j.add_argument("--days", type=int, default=None)
     j.add_argument("--label", type=str, default=None)
+    j.add_argument("--force", action="store_true", help="checkin: send now, ignoring CHECKIN_HOURS and quiet hours")
     a = p.parse_args(argv)
 
     init_db()
@@ -65,7 +66,7 @@ def main(argv=None):
     elif a.cmd == "tripwires":
         out = runner.run("tripwires", runner.run_tripwires)
     elif a.cmd == "job":
-        kw = {k: v for k, v in {"days": a.days, "label": a.label}.items() if v is not None}
+        kw = {k: v for k, v in {"days": a.days, "label": a.label, "force": a.force or None}.items() if v is not None}
         out = runner.run(a.name, runner.JOBS[a.name], **kw)
         print(json.dumps(out, indent=1, default=str))
         return 0 if out["ok"] else 1

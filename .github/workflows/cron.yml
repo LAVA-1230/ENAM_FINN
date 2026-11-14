@@ -7,6 +7,9 @@
 #   render           - the old way: POST to the Render API, which runs the job in a background thread.
 #                      Secrets: FINN_API (e.g. https://finn-api.onrender.com) and JOB_TOKEN.
 # `snapshot` always goes to Render: it writes a file that Render's replay mode serves.
+#
+# Check-in: after each scheduled ingest/eod run, a portfolio summary goes to the inbox, phone push and Telegram
+# at most every CHECKIN_HOURS (repo variable; default 2, 0 = off). Run workflow > "checkin" sends one now.
 name: cron
 on:
   schedule:
@@ -23,7 +26,7 @@ on:
         required: true
         default: ingest_filings
         type: choice
-        options: [ingest_filings, eod_prices, build_digest, tripwires, financials, docs_refresh, snapshot]
+        options: [ingest_filings, eod_prices, build_digest, tripwires, financials, docs_refresh, snapshot, checkin]
 concurrency:
   group: finn-cron        # one job at a time, so two jobs never write the same rows together
   cancel-in-progress: false
@@ -31,6 +34,18 @@ jobs:
   call:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      LLM_PROVIDER: gemini
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+      VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+      VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT || 'mailto:finn@example.com' }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
+      CHECKIN_HOURS: ${{ vars.CHECKIN_HOURS || '2' }}
+      TZ: Asia/Kolkata
     steps:
       - name: Pick job
         id: pick
@@ -65,20 +80,14 @@ jobs:
       - if: steps.pick.outputs.mode == 'direct'
         name: Run job
         working-directory: backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          LLM_PROVIDER: gemini
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
-          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
-          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT || 'mailto:finn@example.com' }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          FRONTEND_ORIGIN: ${{ secrets.FRONTEND_ORIGIN }}
-          TZ: Asia/Kolkata
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "::error::Add the DATABASE_URL repo secret (Neon connection string)"; exit 1; fi
-          python -m app.jobs.cli job ${{ steps.pick.outputs.job }}
+          job=${{ steps.pick.outputs.job }}
+          if [ "$job" = "checkin" ]; then python -m app.jobs.cli job checkin --force; else python -m app.jobs.cli job "$job"; fi
+      - if: always() && steps.pick.outputs.mode == 'direct' && (steps.pick.outputs.job == 'ingest_filings' || steps.pick.outputs.job == 'eod_prices')
+        name: Portfolio check-in (every CHECKIN_HOURS)
+        working-directory: backend
+        run: python -m app.jobs.cli job checkin
 
       # --- render mode (and snapshot) ---
       - if: steps.pick.outputs.mode == 'render'

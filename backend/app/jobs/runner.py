@@ -5,11 +5,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 import yaml
-from sqlalchemy import select
+from sqlalchemy import func, select
 
-from .. import portfolio
+from .. import fmt, portfolio
+from ..config import get_settings
 from ..db import SessionLocal, init_db
-from ..models import Company, Holding, JobRun, PriceDaily
+from ..models import Company, Event, Holding, JobRun, PriceDaily, Tripwire
 from ..push import ingest, notify, price_signals, tripwires
 from ..push.ingest import get_settings_row
 from ..sources import prices
@@ -166,10 +167,59 @@ def docs_refresh(db, **_) -> dict:
     return {"refreshed": done}
 
 
+def checkin(db, force: bool = False, **_) -> dict:
+    """Optional portfolio summary to the inbox, phone push and Telegram every CHECKIN_HOURS (0 = off), so the
+    user can see the alert channels work on quiet days. Runs after each scheduled ingest/eod; `force` sends now."""
+    hours = get_settings().checkin_hours
+    if not force:
+        if hours <= 0:
+            return {"sent": False, "reason": "off (CHECKIN_HOURS=0)"}
+        if notify.in_quiet_hours(get_settings_row(db)):
+            return {"sent": False, "reason": "quiet hours"}
+        runs = db.scalars(select(JobRun).where(JobRun.job == "checkin", JobRun.ok.is_(True))
+                          .order_by(JobRun.started_at.desc()).limit(50)).all()
+        last = next((r.started_at for r in runs if (r.stats or {}).get("sent")), None)
+        if last and datetime.utcnow() - last < timedelta(hours=hours) - timedelta(minutes=10):
+            return {"sent": False, "reason": f"last sent {last.isoformat()}Z"}
+    title, body = "FINN check-in", checkin_text(db)
+    n = notify.send(db, title, body, "/portfolio", force=True)  # quiet hours were checked above
+    return {"sent": True, "channel": n.channel, "body": body}
+
+
+def checkin_text(db) -> str:
+    b = portfolio.book(db)
+    day, moves = 0.0, []
+    for pos in b["positions"].values():
+        mv = portfolio.move_on(db, pos["company"])
+        if mv:
+            day += pos["qty"] * (mv.close - mv.prev_close)
+            moves.append((mv.ret, pos["company"].name, mv.d))
+    if not moves:
+        return "No prices stored yet. Alerts still work; the next price run fills this in."
+    eod = max(m[2] for m in moves)
+    prev_total = b["total"] - day
+    day_pct = day / prev_total * 100 if prev_total else None
+    top = sorted(moves, key=lambda m: abs(m[0]), reverse=True)[:3]
+    hits = db.scalar(select(func.count()).select_from(Tripwire).where(Tripwire.enabled.is_(True), Tripwire.status == "hit"))
+    since = datetime.utcnow() - timedelta(hours=24)
+    urgent = db.scalar(select(func.count()).select_from(Event).where(Event.created_at >= since, Event.tier == "P0"))
+    last_ingest = db.scalars(select(JobRun).where(JobRun.job == "ingest_filings", JobRun.ok.is_(True))
+                             .order_by(JobRun.started_at.desc()).limit(1)).first()
+    checked = (last_ingest.finished_at or last_ingest.started_at) if last_ingest else None
+    lines = [f"Portfolio {fmt.rupees(b['total'])}, {fmt.signed_pct(day_pct)} ({fmt.rupees(day, signed=True)}) "
+             f"at the {eod.day} {eod.strftime('%b')} close.",
+             "Biggest moves: " + ", ".join(f"{name} {fmt.signed_pct(ret)}" for ret, name, _ in top) + ".",
+             f"Tripwires hit: {hits}. Urgent items in the last 24h: {urgent}."]
+    if checked:
+        ist = checked + timedelta(hours=5, minutes=30)
+        lines.append(f"Filings last checked {ist.strftime('%H:%M')} IST. Prices are end-of-day, never real-time.")
+    return "\n".join(lines)
+
+
 def snapshot(db, label: str = "demo", **_) -> dict:
     from ..api.replay import write_snapshot
     return write_snapshot(db, label)
 
 
 JOBS = {"seed": seed, "eod_prices": eod_prices, "financials": load_financials, "ingest_filings": ingest_filings, "build_digest": build_digest,
-        "tripwires": run_tripwires, "docs_refresh": docs_refresh, "snapshot": snapshot}
+        "tripwires": run_tripwires, "docs_refresh": docs_refresh, "snapshot": snapshot, "checkin": checkin}

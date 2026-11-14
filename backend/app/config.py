@@ -28,6 +28,7 @@ class Settings(BaseSettings):
 
     telegram_bot_token: str = ""  # from @BotFather; urgent alerts also go to Telegram when set
     telegram_chat_id: str = ""    # comma-separated for several chats
+    checkin_hours: float = 0      # portfolio check-in message every N hours (0 = off); proves the alert channels work
 
     data_dir: Path = BACKEND_DIR / "data"
     replay_default: bool = False
