@@ -11,6 +11,9 @@ import type { Settings } from "@/lib/types";
 type Health = { replay: boolean; snapshots: string[]; last: Record<string, { label: string | null }>; eod_date: string | null;
                 llm: { enabled: boolean; provider: string | null }; push: boolean; websearch: boolean };
 
+type Usage = { total_cost_usd: number; calls: number; cache_hit_rate: number; cost_per_day_per_20_companies_usd: number };
+const usd = (x: number) => (x > 0 && x < 0.01 ? "under $0.01" : `$${x.toFixed(2)}`);
+
 function Stepper({ label, hint, value, step, min, max, unit, onChange }: {
   label: string; hint: string; value: number; step: number; min: number; max: number; unit: string; onChange: (v: number) => void;
 }) {
@@ -33,6 +36,7 @@ export default function AlertsPage() {
   const qc = useQueryClient();
   const { data: s, error, isLoading } = useQuery({ queryKey: ["settings"], queryFn: () => api<Settings>("/settings") });
   const { data: h } = useQuery({ queryKey: ["health"], queryFn: () => api<Health>("/health") });
+  const { data: u } = useQuery({ queryKey: ["usage"], queryFn: () => api<Usage>("/admin/usage"), retry: false });
   const [t, setT] = useState<{ price_pct: number; volume_x: number; impact_pct: number } | null>(null);
   const [preview, setPreview] = useState<Settings["preview"] | null>(null);
   const [pushMsg, setPushMsg] = useState<string | null>(null);
@@ -159,6 +163,10 @@ export default function AlertsPage() {
               <p>Prices: {h?.eod_date ? `EOD ${h.eod_date}` : "none stored"}</p>
               <p>Language model: {h?.llm.enabled ? h.llm.provider : "not configured, using rules and templates"}</p>
               <p>Bio web search: {h?.websearch ? "on" : "off"}. Web push: {h?.push ? "configured" : "inbox only"}.</p>
+              {u && u.calls > 0 && (
+                <p>Language model spend: <Num>{usd(u.total_cost_usd)}</Num> in total, about <Num>{usd(u.cost_per_day_per_20_companies_usd)}</Num> a day for 20 companies.{" "}
+                  <Num>{Math.round(u.cache_hit_rate * 100)}%</Num> of <Num>{u.calls}</Num> calls were answered from cache at no cost.</p>
+              )}
               <p className="mt-1 text-small text-ink-3">Data refreshes on a schedule. FINN never claims real-time prices.</p>
             </div>
           </Sheet>

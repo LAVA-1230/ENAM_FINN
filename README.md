@@ -5,7 +5,7 @@
 A mobile-first investment agent for a concentrated portfolio of Indian stocks, with two modes:
 
 - **Push:** a windowed brief of NSE filings and EOD price/volume moves, ranked, with routine items counted instead of shown. Includes verified results cards (Rev / EBITDA / PBT / PAT with QoQ and YoY), management-change cards with bios and cluster checks, configurable thresholds, tripwires, an audio brief and web push for urgent items only.
-- **Pull:** research on any NSE ticker, grounded only in the last 4 concall transcripts and the latest annual report: a promise ledger (what management promised vs what it delivered), cash quality, the business mix, bull vs bear, and Ask with numbered citations.
+- **Pull:** research on any NSE ticker, grounded only in the last 4 concall transcripts and the latest annual report: a promise ledger (what management promised vs what it delivered) with a guidance filter, a financial snapshot, the multi-year trajectory, the balance sheet, cash quality, the business mix, bull vs bear, and Ask with numbered citations.
 
 - Deployed app: _(link to be added)_
 - Write-up: [docs/WRITEUP.md](docs/WRITEUP.md)
@@ -63,7 +63,7 @@ npx playwright install chromium && npm run test:mobile   # Brief -> event -> com
 1. **Database:** create a Postgres database on Neon or Supabase and copy its URL.
 2. **Backend (Render):** create a service from `render.yaml`. Set `DATABASE_URL`, `FRONTEND_ORIGIN` (your Vercel URL), `JOB_TOKEN` (a long random string) and, optionally, `LLM_API_KEY`, `WEBSEARCH_API_KEY` and the VAPID keys (`npx web-push generate-vapid-keys`). Tables are created and the portfolio is seeded on first start. Free instances sleep when idle: the first request can take up to a minute, and the app shows "Waking up FINN" while it does.
 3. **Frontend (Vercel):** import `frontend/`, set `NEXT_PUBLIC_API_BASE` to the Render URL.
-4. **Cron:** add repo secrets `FINN_API` and `JOB_TOKEN`; `.github/workflows/cron.yml` then runs ingest, EOD prices, digest, docs refresh and the replay snapshot.
+4. **Cron:** `.github/workflows/cron.yml` runs the jobs on GitHub's runners, straight against the database. Add repo secrets `DATABASE_URL` and `LLM_API_KEY` (optional: the VAPID keys, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `FRONTEND_ORIGIN`), plus `FINN_API` and `JOB_TOKEN` for the replay snapshot. It runs ingest hourly 09:00-20:00 IST every day, EOD prices on weekdays, the digest, docs refresh, and a portfolio check-in every `CHECKIN_HOURS` (repo variable, default 1).
 5. **Load data:** run `python -m app.jobs.cli bootstrap` once with `DATABASE_URL` pointing at production.
 
 **If NSE blocks the cloud host:** run `python -m app.jobs.cli ingest` from a laptop with `DATABASE_URL` set to production Postgres. It runs the same code against the same database. This is a deliberate trade-off: NSE often blocks datacenter IPs.

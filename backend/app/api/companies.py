@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter
@@ -7,12 +8,22 @@ from sqlalchemy.orm import Session
 
 from .. import portfolio
 from ..models import CalendarItem, Chunk, Decision, Document, Event, FinancialQ, FinancialY, Promise, PromiseVerdict, Tripwire
-from ..pull import cards, verdict
+from ..pull import cards, glance, verdict
 from ..push import tripwires as tw
 from ..push.digest import decision_dict, event_card
 from .common import DB, IST, company_or_404, doc_link, exposure, holding_of, research_row, thesis_health
 
 router = APIRouter(tags=["companies"])
+log = logging.getLogger(__name__)
+
+
+def _extra(name: str, fn, db: Session, c) -> dict:
+    """An add-on view must never take the page down: on any error it is simply reported as unavailable."""
+    try:
+        return fn(db, c)
+    except Exception:  # noqa: BLE001
+        log.exception("%s view failed for %s", name, c.symbol)
+        return {"available": False}
 
 
 def _upcoming(db: Session, company_id: int, days: int = 10) -> list[CalendarItem]:
@@ -73,7 +84,8 @@ def promises(symbol: str, db: Session = DB):
                 revisions.append(r)
         revisions = revisions[:2]
         out.append({
-            "id": p.id, "metric": p.metric, "metric_key": p.metric_key, "made_in": p.made_in, "horizon": p.horizon,
+            "id": p.id, "metric": p.metric, "metric_key": p.metric_key, "headline": p.metric_key in glance.HEADLINE_METRICS,
+            "made_in": p.made_in, "horizon": p.horizon,
             "target_text": p.target_text, "target_low": p.target_low, "target_high": p.target_high, "unit": p.unit,
             "quote": p.quote, "speaker": p.speaker, "page": p.page, "extractor": p.extractor,
             "source": {"label": f"{p.made_in} call" + (f", page {p.page}" if p.page else ""), "url": doc_link(d, p.page),
@@ -106,6 +118,9 @@ def financials(symbol: str, db: Session = DB):
         "years": [{"fy": y.fy, "revenue": y.revenue, "ebitda": y.ebitda, "pat": y.pat, "opm": y.opm, "cfo": y.cfo,
                    "roce": y.roce, "total_debt": y.total_debt, "cash": y.cash} for y in ys[-6:]],
         "revenue_cagr_3y": traj.get("revenue_cagr_3y"), "pat_cagr_3y": traj.get("pat_cagr_3y"),
+        "snapshot": _extra("snapshot", glance.snapshot_card, db, c),
+        "trends": _extra("trends", glance.trends, db, c),
+        "balance": _extra("balance", glance.balance_card, db, c),
         "source": {"label": "screener.in, compiled from company filings",
                    "url": f"https://www.screener.in/company/{c.symbol}/consolidated/"},
     }

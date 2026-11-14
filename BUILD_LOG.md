@@ -43,3 +43,12 @@
 ## 2026-11-14: pause on Ask read-aloud, weekend cron
 - Ask answers had "Read aloud" with no way to stop it (the Brief's Listen had Pause). The button now cycles Read aloud -> Pause -> Resume. Pause cancels speech and remembers the sentence, because `speechSynthesis.pause()` is unreliable on Android Chrome; Resume restarts from that sentence. Closing the sheet or starting another answer stops the voice.
 - Cron: `ingest_filings` now runs hourly 09:00-20:00 IST every day, not just weekdays, so the check-in and alert channels can be tested on a weekend. Check-in default is now every 1 hour (repo variable CHECKIN_HOURS overrides). EOD prices stay weekdays only: there is no new bar on a weekend.
+
+## 2026-11-14: the rest of the brief's Pull menu
+- Audit against the challenge PDF: of the eight research outputs, balance sheet and financial snapshot were missing, trajectory was one quarterly chart, and guidance was buried in the promise ledger. Efficiency (bonus points) was measured but not visible.
+- Added `pull/glance.py`: financial snapshot (last twelve months from the quarterly table, ratios from the last full year), trajectory (one row per measure: growing / flat / shrinking, expanding / steady / compressing) and balance sheet (borrowings, equity, net debt, debt/equity, net debt/EBITDA, interest cover, funding split, working-capital days). All arithmetic in Python from screener.in's tables; no LLM call, so no cost.
+- Surprise: for banks and NBFCs the old net-debt row read as a leverage warning. Lenders are now detected from the data (no ROCE or working-capital days, interest above 25% of revenue), never from a list, and leverage and margin rows are left out for them with a sentence saying why.
+- Why no new endpoints: the three views ride on `/companies/{symbol}/financials` as extra keys, each wrapped so an error returns "unavailable" instead of failing the page. Old replay snapshots lack the keys and the UI simply hides the sections. Stored research cards are untouched.
+- Cash quality now shows only cash conversion and free cash flow when the balance sheet section is present, so debt and working capital are not listed twice.
+- Promises: `headline` flag (revenue growth, margin, profit growth, capex) and an "All promises / Guidance" switch. Alerts > Data shows total LLM spend, cost per day for 20 companies and the cache hit rate.
+- Checked at 390 px, light and dark, on a consumer company, a bank and a company with mixed promises: no console errors, no horizontal scroll. pytest 26 passed; mobile suite 3 passed.

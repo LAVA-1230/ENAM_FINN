@@ -48,18 +48,30 @@ function ScoreHead({ s }: { s: Scorecard }) {
 function Promises({ symbol }: { symbol: string }) {
   const { openSource } = useSheets();
   const [filter, setFilter] = useState("all");
+  const [scope, setScope] = useState<"all" | "guidance">("all");
   const { data, isLoading, error } = useQuery({ queryKey: ["promises", symbol], queryFn: () => api<{ scorecard: Scorecard; promises: PromiseRow[] }>(`/companies/${encodeURIComponent(symbol)}/promises`) });
   if (isLoading) return <Skeleton lines={6} />;
   if (error) return <ErrorLine error={error} />;
   if (!data?.promises.length) return <Empty>No explicit, numbered commitments found in the last four concalls.</Empty>;
-  const statuses = Array.from(new Set(data.promises.map((p) => p.status)));
-  const rows = data.promises.filter((p) => filter === "all" || p.status === filter);
+  const guidance = data.promises.filter((p) => p.headline);
+  const canScope = guidance.length > 0 && guidance.length < data.promises.length;
+  const scoped = canScope && scope === "guidance" ? guidance : data.promises;
+  const statuses = Array.from(new Set(scoped.map((p) => p.status)));
+  const active = statuses.includes(filter) ? filter : "all";
+  const rows = scoped.filter((p) => active === "all" || p.status === active);
   return (
     <>
       <ScoreHead s={data.scorecard} />
+      {canScope && (
+        <div className="mt-3 px-4">
+          <Segmented<"all" | "guidance"> label="Which promises" value={scope} onChange={setScope}
+            options={[{ value: "all", label: `All promises (${data.promises.length})` }, { value: "guidance", label: `Guidance (${guidance.length})` }]} />
+          {scope === "guidance" && <p className="mt-2 text-small text-ink-3">Management's explicit guidance on the headline numbers: growth, margins and capex.</p>}
+        </div>
+      )}
       {statuses.length > 1 && (
         <div className="mt-3 px-4">
-          <Segmented label="Filter by verdict" value={filter} onChange={setFilter}
+          <Segmented label="Filter by verdict" value={active} onChange={setFilter}
             options={[{ value: "all", label: "All" }, ...statuses.map((s) => ({ value: s, label: VERDICT[s]?.word || s }))]} />
         </div>
       )}
@@ -92,7 +104,15 @@ function Promises({ symbol }: { symbol: string }) {
   );
 }
 
-type Fin = { title: string; basis: string | null; quarters: { label: string; revenue: number | null; opm: number | null; pat: number | null }[];
+type GlanceItem = { key: string; label: string; value: string; change: number | null; detail: string | null };
+type Series = { fy: string; v: number }[];
+type TrendRow = { key: string; label: string; word: string; dir: "up" | "down" | "flat"; detail: string; series: Series };
+type BalanceRow = { key: string; label: string; value: string; detail: string; flag: string | null; series: Series;
+  split?: { equity: number; debt: number } };
+type Fin = { snapshot?: { available: boolean; period?: string; items?: GlanceItem[] };
+  trends?: { available: boolean; title?: string; rows?: TrendRow[] };
+  balance?: { available: boolean; title?: string | null; rows?: BalanceRow[]; source?: string };
+  title: string; basis: string | null; quarters: { label: string; revenue: number | null; opm: number | null; pat: number | null }[];
   revenue_cagr_3y: number | null; pat_cagr_3y: number | null; source: { label: string; url: string } };
 
 function RevenueChart({ f }: { f: Fin }) {
@@ -128,20 +148,114 @@ function RevenueChart({ f }: { f: Fin }) {
 }
 
 const FLAG: Record<string, string> = { healthy: "Healthy", watch: "Watch", red: "Red flag" };
+const flagCls = (f: string | null) => (f === "red" ? "font-semibold text-down" : f === "watch" ? "font-semibold text-ink" : "text-ink-3");
+
+/** Financial snapshot: the headline numbers at a glance, above the tabs. Renders nothing until the data exists. */
+function Glance({ symbol }: { symbol: string }) {
+  const { data } = useQuery({ queryKey: ["fin", symbol], queryFn: () => api<Fin>(`/companies/${encodeURIComponent(symbol)}/financials`) });
+  const s = data?.snapshot;
+  if (!s?.available || !s.items?.length) return null;
+  return (
+    <section className="mt-4" aria-label="Financial snapshot">
+      <Sheet>
+        <div className="grid grid-cols-3 gap-x-3 gap-y-3 px-4 py-3">
+          {s.items.map((it) => (
+            <div key={it.key} className="min-w-0">
+              <p className="truncate text-small text-ink-3">{it.label}</p>
+              <Num className="block truncate text-body font-semibold">{it.value}</Num>
+              {it.change != null && (
+                <Num className={`block text-small ${tone(it.change)}`}>{it.key === "margin" || it.key === "roce" ? pts(it.change) : signedPct(it.change)}</Num>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="border-t border-rule px-4 py-2 text-small text-ink-3">{s.period}; change is against the year before. Ratios are for the last full year.</p>
+      </Sheet>
+    </section>
+  );
+}
+
+function Spark({ series }: { series: Series }) {
+  if (!series || series.length < 2) return null;
+  const vs = series.map((p) => p.v);
+  const lo = Math.min(...vs), hi = Math.max(...vs);
+  const pt = (v: number, i: number) => `${(i / (series.length - 1)) * 48},${15 - ((v - lo) / ((hi - lo) || 1)) * 14}`;
+  return (
+    <svg viewBox="0 0 48 16" className="h-4 w-12 shrink-0 overflow-visible text-ink-3" aria-hidden>
+      <polyline fill="none" stroke="currentColor" strokeWidth="1.2" points={vs.map(pt).join(" ")} />
+    </svg>
+  );
+}
+
+/** Trajectory: the multi-year direction, one row per measure. */
+function Trends({ t }: { t: NonNullable<Fin["trends"]> }) {
+  if (!t.available || !t.rows?.length) return null;
+  return (
+    <>
+      <h2 className="mb-2 mt-6 px-4 text-sec font-semibold text-ink-2">Trajectory</h2>
+      {t.title && <p className="mb-2 px-4 text-body font-semibold">{t.title}</p>}
+      <Sheet>
+        {t.rows.map((r) => (
+          <div key={r.key} className="flex items-center justify-between gap-3 border-t border-rule px-4 py-3 first:border-t-0">
+            <div className="min-w-0"><p className="text-body">{r.label}</p><p className="num text-sec text-ink-3">{r.detail}</p></div>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <span className={`text-sec font-semibold ${r.dir === "up" ? "text-up" : r.dir === "down" ? "text-down" : "text-ink-3"}`}>{r.word}</span>
+              <Spark series={r.series} />
+            </div>
+          </div>
+        ))}
+      </Sheet>
+    </>
+  );
+}
+
+/** Balance sheet: debt, leverage, funding structure and the working-capital cycle. */
+function Balance({ b }: { b: NonNullable<Fin["balance"]> }) {
+  if (!b.available || !b.rows?.length) return null;
+  return (
+    <>
+      <h2 className="mb-2 mt-6 px-4 text-sec font-semibold text-ink-2">Balance sheet</h2>
+      {b.title && <p className="mb-2 px-4 text-body font-semibold">{b.title}</p>}
+      <Sheet>
+        {b.rows.map((r) => (
+          <div key={r.key} className="border-t border-rule px-4 py-3 first:border-t-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0"><p className="text-body">{r.label}</p><p className="num text-sec text-ink-3">{r.detail}</p></div>
+              <div className="shrink-0 text-right"><Num className="block text-item font-semibold">{r.value}</Num>
+                {r.flag && <span className={`text-sec ${flagCls(r.flag)}`}>{FLAG[r.flag]}</span>}</div>
+            </div>
+            {r.split && (
+              <div className="mt-2 flex h-1.5 overflow-hidden rounded-tag bg-rule" aria-hidden>
+                <div className="h-full bg-ink" style={{ width: `${r.split.equity}%` }} />
+              </div>
+            )}
+          </div>
+        ))}
+        {b.source && <p className="border-t border-rule px-4 py-2 text-small text-ink-3">{b.source}</p>}
+      </Sheet>
+    </>
+  );
+}
 
 function Numbers({ symbol }: { symbol: string }) {
   const fin = useQuery({ queryKey: ["fin", symbol], queryFn: () => api<Fin>(`/companies/${encodeURIComponent(symbol)}/financials`) });
   const cash = useQuery({ queryKey: ["cash", symbol], queryFn: () => api<any>(`/companies/${encodeURIComponent(symbol)}/cash`) });
+  // Rows the balance-sheet section already shows are not repeated under cash quality.
+  const bal = fin.data?.balance?.available ? fin.data.balance : null;
+  const shown = new Set<string>(bal ? ["net_debt", ...(bal.rows || []).map((r) => r.key)] : []);
+  const cashRows: any[] = (cash.data?.rows || []).filter((r: any) => !shown.has(r.key));
   return (
     <div className="pt-4">
       {fin.isLoading ? <Skeleton /> : fin.data?.quarters.length ? <RevenueChart f={fin.data} /> : <Empty>No quarterly table yet.</Empty>}
       {fin.data && (fin.data.revenue_cagr_3y != null || fin.data.pat_cagr_3y != null) && (
         <p className="mt-3 px-4 text-sec text-ink-2">3-year growth: revenue <Num className={tone(fin.data.revenue_cagr_3y)}>{signedPct(fin.data.revenue_cagr_3y)}</Num> a year, PAT <Num className={tone(fin.data.pat_cagr_3y)}>{signedPct(fin.data.pat_cagr_3y)}</Num> a year</p>
       )}
+      {fin.data?.trends && <Trends t={fin.data.trends} />}
+      {bal && <Balance b={bal} />}
       <h2 className="mb-2 mt-6 px-4 text-sec font-semibold text-ink-2">Cash quality</h2>
-      {cash.data?.available ? (
+      {cash.data?.available && cashRows.length > 0 ? (
         <Sheet>
-          {cash.data.rows.map((r: any) => (
+          {cashRows.map((r: any) => (
             <div key={r.key} className="flex items-start justify-between gap-3 border-t border-rule px-4 py-3 first:border-t-0">
               <div><p className="text-body">{r.label}</p><p className="num text-sec text-ink-3">{r.detail}</p></div>
               <div className="text-right"><Num className="block text-item font-semibold">{r.value}</Num>
@@ -369,6 +483,8 @@ function CompanyInner() {
               )}
             </Sheet>
           )}
+
+          <Glance symbol={symbol} />
 
           <div className="mt-4 px-4">
             <Segmented<Tab> label="Company sections" value={tab} onChange={setTab}
