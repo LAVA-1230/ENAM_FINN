@@ -144,7 +144,7 @@ export default function BriefPage() {
 
           <p className="mt-6 px-4 text-small text-ink-3">
             {b.freshness.filings_checked ? `Checked filings ${b.freshness.filings_checked}. ` : "Filings not checked yet. "}
-            {b.freshness.eod_label ? `Prices ${b.freshness.eod_label}.` : ""} Never real-time.
+            {b.freshness.eod_label ? `Prices are end of day, last close ${b.freshness.eod_label.replace(/^EOD /, "")}.` : "Prices are end of day."}
           </p>
         </>
       )}

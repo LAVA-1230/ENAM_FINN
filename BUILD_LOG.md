@@ -52,3 +52,11 @@
 - Cash quality now shows only cash conversion and free cash flow when the balance sheet section is present, so debt and working capital are not listed twice.
 - Promises: `headline` flag (revenue growth, margin, profit growth, capex) and an "All promises / Guidance" switch. Alerts > Data shows total LLM spend, cost per day for 20 companies and the cache hit rate.
 - Checked at 390 px, light and dark, on a consumer company, a bank and a company with mixed promises: no console errors, no horizontal scroll. pytest 26 passed; mobile suite 3 passed.
+
+## 2026-11-15: why no check-ins arrived, and four small design changes
+- Symptom: no Telegram or phone message since the manual check-in on 14 Nov 12:54 IST (that one reached both channels, so the senders work).
+- Cause, from the Actions run list and the job_run table: (1) the check-in only ran after a scheduled ingest/eod; Saturday ingests were off until the weekend change was pushed at 22:16 IST, after the 09:00-20:00 window. (2) GitHub's scheduler is best effort: on Fri 13 Nov only 2 of 12 hourly ingests ran, one 5.5 h late, and eod ran 7 h late. Late runs land in quiet hours (22:00-07:00 IST), where the check-in is skipped by design.
+- Fix: check-in has its own hourly schedule at :47 (off the busy top of the hour), and also runs after every direct-mode job. Duplicates are prevented by the CHECKIN_HOURS check. Manual "Run workflow > checkin" still sends at once. Urgent company alerts are still P0-only: no P0 since 12 Nov, and NSE files little on weekends.
+- Design: red-pen correction on missed/behind promises (target struck through, delivered value beside it; value formatted in Python from the computed verdict, never an LLM one). Decisions and notes as margin notes (rule, action stamp, italic reason) on brief cards, event page and company page. Ask citations as superscript footnotes with a 44px tap pad; adjacent markers read 5,7 not 57. Footer says "Prices are end of day" instead of "Never real-time".
+- Save to notes now shows "Saving…", errors, and a confirmation saying where the note lives (company Story tab, "Your decisions and notes"; "Last time" on the next event card) with a link that opens that tab and scrolls to it.
+- Checked at 390 px, light and dark. pytest 27 passed; frontend build passes.

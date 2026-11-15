@@ -7,7 +7,7 @@ import { DecideSheet } from "@/components/decide-sheet";
 import { IconBack } from "@/components/icons";
 import { useSheets } from "@/components/providers";
 import { TopBar } from "@/components/shell";
-import { Button, ErrorLine, Num, Quote, Row, Segmented, Skeleton, Urgency } from "@/components/ui";
+import { Button, ErrorLine, MarginNote, Num, Quote, Row, Segmented, Skeleton, Urgency } from "@/components/ui";
 import { api, send } from "@/lib/api";
 import { crore, pts, rupees, signedPct, tone } from "@/lib/fmt";
 import type { EventDetail, Move } from "@/lib/types";
@@ -273,7 +273,7 @@ export default function EventPage() {
 
           {e.last_decision && (
             <Section title="Last time">
-              <p className="px-4 text-body">On {e.last_decision.date} you chose <b>{e.last_decision.action}</b>{e.last_decision.note ? `: “${e.last_decision.note}”` : "."}</p>
+              <div className="px-4"><MarginNote action={e.last_decision.action} date={e.last_decision.date} note={e.last_decision.note} /></div>
             </Section>
           )}
 
@@ -288,7 +288,7 @@ export default function EventPage() {
 
           {e.decisions.length > 0 && (
             <Section title="Your decisions on this">
-              <ul className="px-4">{e.decisions.map((d) => <li key={d.id} className="text-body"><b className="capitalize">{d.action}</b>{d.note ? `: ${d.note}` : ""} <span className="text-small text-ink-3">{d.date}</span></li>)}</ul>
+              <ul className="px-4">{e.decisions.map((d) => <li key={d.id}><MarginNote action={d.action} date={d.date} note={d.note} /></li>)}</ul>
             </Section>
           )}
 

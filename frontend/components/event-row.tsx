@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { EventCard } from "@/lib/types";
-import { Num, Quote, Urgency } from "./ui";
+import { MarginNote, Num, Quote, Urgency } from "./ui";
 
 function impactTone(line: string | null) {
   if (!line) return "text-ink-2";
@@ -30,10 +30,7 @@ export function EventRow({ e, active, draw }: { e: EventCard; active?: boolean; 
           <p className="mt-1.5 text-sec text-ink-3">Why this is here: {e.reasons.slice(0, 3).join(", ")}</p>
         )}
         {e.last_decision && (
-          <p className="mt-1 text-sec text-ink-2">
-            Last time ({e.last_decision.date.slice(5).split("-").reverse().join("/")}) you chose {e.last_decision.action}
-            {e.last_decision.note ? `: “${e.last_decision.note}”` : ""}
-          </p>
+          <MarginNote lead="Last time:" action={e.last_decision.action} date={e.last_decision.date} note={e.last_decision.note} />
         )}
       </div>
     </Link>

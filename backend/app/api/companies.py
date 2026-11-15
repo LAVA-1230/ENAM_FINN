@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from .. import portfolio
+from .. import fmt, portfolio
 from ..models import CalendarItem, Chunk, Decision, Document, Event, FinancialQ, FinancialY, Promise, PromiseVerdict, Tripwire
 from ..pull import cards, glance, verdict
 from ..push import tripwires as tw
@@ -24,6 +24,21 @@ def _extra(name: str, fn, db: Session, c) -> dict:
     except Exception:  # noqa: BLE001
         log.exception("%s view failed for %s", name, c.symbol)
         return {"available": False}
+
+
+def actual_short(p: Promise, v: PromiseVerdict | None) -> str | None:
+    """The delivered figure in the target's own unit, for the red-pen correction on the promise ledger.
+    Only values Python computed from reported results; an LLM verdict has no number, so it gets none."""
+    if not v or v.actual_value is None or v.method == "llm":
+        return None
+    val = v.actual_value
+    if p.metric_key == "ebitda_margin":
+        return f"{val:.1f}%"
+    if p.metric_key in ("revenue_growth", "pat_growth") and (p.unit or "%").strip().startswith("%"):
+        return fmt.signed_pct(val)
+    if p.metric_key in ("revenue_growth", "pat_growth", "capex", "net_debt"):
+        return fmt.crore(val)
+    return None
 
 
 def _upcoming(db: Session, company_id: int, days: int = 10) -> list[CalendarItem]:
@@ -91,6 +106,7 @@ def promises(symbol: str, db: Session = DB):
             "source": {"label": f"{p.made_in} call" + (f", page {p.page}" if p.page else ""), "url": doc_link(d, p.page),
                        "document_id": d.id if d else None},
             "status": v.status if v else "pending", "actual_text": v.actual_text if v else None,
+            "actual_short": actual_short(p, v),
             "method": v.method if v else None, "evidence": evidence,
             "repeats": [r.get("made_in") for r in (p.repeats or []) if r.get("made_in")],
             "revisions": [{"made_in": r.get("made_in"), "target_text": r.get("target_text")} for r in revisions],

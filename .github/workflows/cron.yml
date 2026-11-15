@@ -9,7 +9,9 @@
 # `snapshot` always goes to Render: it writes a file that Render's replay mode serves.
 #
 # Check-in: after each scheduled ingest/eod run, a portfolio summary goes to the inbox, phone push and Telegram
-# at most every CHECKIN_HOURS (repo variable; default 1, 0 = off). Run workflow > "checkin" sends one now.
+# at most every CHECKIN_HOURS (repo variable; default 1, 0 = off). It also has its own hourly schedule at an off-peak
+# minute, because GitHub delays or drops many scheduled runs (on 13 Nov only 2 of 12 hourly ingests ran, up to 5.5 h late).
+# Run workflow > "checkin" sends one now, ignoring CHECKIN_HOURS and quiet hours.
 name: cron
 on:
   schedule:
@@ -19,6 +21,7 @@ on:
     - cron: "30 13 * * *"       # build_digest 19:00 IST
     - cron: "30 15 * * *"       # docs_refresh 21:00 IST
     - cron: "0 16 * * *"        # snapshot 21:30 IST
+    - cron: "47 * * * *"        # checkin, every hour at :47 (it skips quiet hours and anything sent < CHECKIN_HOURS ago)
   workflow_dispatch:
     inputs:
       job:
@@ -56,6 +59,7 @@ jobs:
             "0 2 * * *"|"30 13 * * *") job=build_digest ;;
             "30 15 * * *")     job=docs_refresh ;;
             "0 16 * * *")      job=snapshot ;;
+            "47 * * * *")      job=checkin ;;
             *)                 job="${{ github.event.inputs.job }}" ;;
           esac
           mode="${{ vars.CRON_MODE || 'direct' }}"
@@ -83,8 +87,9 @@ jobs:
         run: |
           if [ -z "$DATABASE_URL" ]; then echo "::error::Add the DATABASE_URL repo secret (Neon connection string)"; exit 1; fi
           job=${{ steps.pick.outputs.job }}
-          if [ "$job" = "checkin" ]; then python -m app.jobs.cli job checkin --force; else python -m app.jobs.cli job "$job"; fi
-      - if: always() && steps.pick.outputs.mode == 'direct' && (steps.pick.outputs.job == 'ingest_filings' || steps.pick.outputs.job == 'eod_prices')
+          # a manual "checkin" run sends now; the scheduled one respects CHECKIN_HOURS and quiet hours
+          if [ "$job" = "checkin" ] && [ "${{ github.event_name }}" = "workflow_dispatch" ]; then python -m app.jobs.cli job checkin --force; else python -m app.jobs.cli job "$job"; fi
+      - if: always() && steps.pick.outputs.mode == 'direct' && steps.pick.outputs.job != 'checkin'
         name: Portfolio check-in (every CHECKIN_HOURS)
         working-directory: backend
         run: python -m app.jobs.cli job checkin

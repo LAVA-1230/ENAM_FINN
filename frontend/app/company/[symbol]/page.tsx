@@ -2,13 +2,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { DecideSheet } from "@/components/decide-sheet";
 import { IconBack } from "@/components/icons";
 import { useSheets } from "@/components/providers";
 import { ResearchProgress } from "@/components/research-progress";
 import { TopBar } from "@/components/shell";
-import { Button, Empty, ErrorLine, Num, Quote, Segmented, Sheet, Skeleton, Urgency } from "@/components/ui";
+import { Button, Empty, ErrorLine, MarginNote, Num, Quote, Segmented, Sheet, Skeleton, Urgency } from "@/components/ui";
 import { api, send } from "@/lib/api";
 import { crore, price, pts, rupees, signedPct, tone } from "@/lib/fmt";
 import type { Company, EventCard, PromiseRow, Scorecard, Tripwire } from "@/lib/types";
@@ -82,7 +82,15 @@ function Promises({ symbol }: { symbol: string }) {
               <h3 className="text-item font-semibold">{p.metric}</h3>
               <span className={`shrink-0 text-sec ${VERDICT[p.status]?.cls}`}>{VERDICT[p.status]?.word || p.status}</span>
             </div>
-            <p className="text-sec text-ink-2">Target: <Num>{p.target_text}</Num>{p.horizon ? ` for ${p.horizon}` : ""}</p>
+            {p.actual_short && (p.status === "missed" || p.status === "behind") ? (
+              // Red-pen correction: the promised figure struck through, what was delivered written beside it.
+              <p className="text-sec text-ink-2" aria-label={`Target ${p.target_text}, delivered ${p.actual_short}`}>
+                Target: <Num className="text-ink-3 line-through decoration-down decoration-2">{p.target_text}</Num>{" "}
+                <Num className="text-body font-semibold text-down">{p.actual_short}</Num>{p.horizon ? ` for ${p.horizon}` : ""}
+              </p>
+            ) : (
+              <p className="text-sec text-ink-2">Target: <Num>{p.target_text}</Num>{p.horizon ? ` for ${p.horizon}` : ""}</p>
+            )}
             <p className={`mt-2 text-body ${p.status === "dropped" ? "line-through decoration-ink-3" : ""}`}><Quote>{p.quote}</Quote></p>
             {p.actual_text && <p className="mt-2 text-body">{p.actual_text}</p>}
             {p.revisions.map((r, i) => <p key={i} className="mt-1 text-sec text-ink-2">Guidance changed: {p.target_text} to {r.target_text} ({r.made_in} call)</p>)}
@@ -332,6 +340,10 @@ function Story({ symbol, company }: { symbol: string; company: Company }) {
   const { data, isLoading } = useQuery({ queryKey: ["story", symbol], queryFn: () => api<any>(`/companies/${encodeURIComponent(symbol)}/story`) });
   const [thesis, setThesis] = useState<string | null>(null);
   const b = data?.business;
+  // "Save to notes" in Ask links here with #decisions; the section renders after the story loads, so scroll then.
+  useEffect(() => {
+    if (!isLoading && window.location.hash === "#decisions") document.getElementById("decisions")?.scrollIntoView({ block: "start" });
+  }, [isLoading]);
   async function saveThesis() {
     await send(`/portfolio/${encodeURIComponent(symbol)}`, "PATCH", { thesis });
     setThesis(null);
@@ -394,8 +406,8 @@ function Story({ symbol, company }: { symbol: string; company: Company }) {
       )}
       {company.decisions.length > 0 && (
         <>
-          <h2 className="mb-2 mt-6 px-4 text-sec font-semibold text-ink-2">Your decisions</h2>
-          <Sheet>{company.decisions.map((d) => <p key={d.id} className="border-t border-rule px-4 py-2.5 text-body first:border-t-0"><Num className="text-sec text-ink-3">{d.date}</Num> <b className="capitalize">{d.action}</b>{d.note ? `: ${d.note}` : ""}</p>)}</Sheet>
+          <h2 id="decisions" className="mb-2 mt-6 scroll-mt-16 px-4 text-sec font-semibold text-ink-2">Your decisions and notes</h2>
+          <Sheet>{company.decisions.map((d) => <div key={d.id} className="border-t border-rule px-4 pb-2.5 pt-0.5 first:border-t-0"><MarginNote action={d.action} date={d.date} note={d.note} /></div>)}</Sheet>
         </>
       )}
     </div>
@@ -424,6 +436,9 @@ function CompanyInner() {
   const qc = useQueryClient();
   const { openAsk } = useSheets();
   const [tab, setTab] = useState<Tab>((sp.get("tab") as Tab) || "promises");
+  // follow ?tab= when a link changes it while this page is open (e.g. "Open … notes" from Ask)
+  const tabParam = sp.get("tab") as Tab | null;
+  useEffect(() => { if (tabParam) setTab(tabParam); }, [tabParam]);
   const [decide, setDecide] = useState(false);
   const [started, setStarted] = useState(false);
   const { data: c, error, isLoading } = useQuery({ queryKey: ["company", symbol], queryFn: () => api<Company>(`/companies/${encodeURIComponent(symbol)}`), retry: false });

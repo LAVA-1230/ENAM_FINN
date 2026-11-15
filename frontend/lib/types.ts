@@ -63,7 +63,7 @@ export interface PromiseRow {
   id: number; metric: string; metric_key: string; headline?: boolean; made_in: string; horizon: string | null; target_text: string;
   quote: string; speaker: string | null; page: number | null; extractor: string;
   source: { label: string; url: string | null; document_id: number | null };
-  status: string; actual_text: string | null; method: string | null;
+  status: string; actual_text: string | null; actual_short?: string | null; method: string | null;
   evidence: { label: string; url?: string | null; chunk_id?: number }[];
   repeats: string[]; revisions: { made_in: string; target_text: string }[];
 }

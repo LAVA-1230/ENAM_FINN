@@ -44,4 +44,5 @@ def add_decision(body: DecisionIn, db: Session = DB):
                  note=(body.note or "").strip()[:500] or None)
     db.add(d)
     db.commit()
-    return decision_dict(d)
+    c = db.get(Company, company_id)
+    return decision_dict(d) | {"symbol": c.symbol, "company": c.name}  # the app links "Saved" to this company's notes

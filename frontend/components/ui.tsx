@@ -31,6 +31,28 @@ export function Num({ children, className = "" }: { children: ReactNode; classNa
   return <span className={`num ${className}`}>{children}</span>;
 }
 
+const DID: Record<string, string> = { hold: "Held", add: "Added", trim: "Trimmed", exit: "Exited", note: "Noted" };
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export function shortDate(iso: string) {
+  const [, m, d] = iso.split("-").map(Number);
+  return `${d} ${MONTHS[m - 1]}`;
+}
+
+/** The investor's own words, written in the margin like a pencil note: a thin rule, the action as a stamp, the
+ *  reason in plain italic sans (never the serif or highlighter, which belong to source documents). */
+export function MarginNote({ action, date, note, lead }: { action: string; date: string; note: string | null; lead?: string }) {
+  return (
+    <div className="mt-2 border-l-2 border-ink-3 pl-2.5">
+      <p className="text-sec text-ink-2">
+        {lead && <span>{lead} </span>}
+        <span className="mr-1.5 inline-block rounded-tag border border-ink-3 px-1 text-small font-semibold text-ink-2">{DID[action] || action}</span>
+        <Num className="text-small text-ink-3">{shortDate(date)}</Num>
+      </p>
+      {note && <p className="mt-0.5 text-sec italic text-ink-2">{note}</p>}
+    </div>
+  );
+}
+
 export function Skeleton({ lines = 3 }: { lines?: number }) {
   return (
     <div className="space-y-3 px-4 py-4" aria-busy="true" aria-label="Loading">

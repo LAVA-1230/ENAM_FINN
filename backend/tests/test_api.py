@@ -122,7 +122,9 @@ def test_settings_roundtrip(client):
 
 def test_decision_and_thesis(client):
     sym = client.get("/api/portfolio").json()["holdings"][0]["symbol"]
-    assert client.post("/api/decisions", json={"symbol": sym, "action": "note", "note": "test"}).status_code == 200
+    saved = client.post("/api/decisions", json={"symbol": sym, "action": "note", "note": "test"})
+    assert saved.status_code == 200
+    assert saved.json()["symbol"] == sym and saved.json()["company"]  # Ask links "Saved to notes" to this company
     assert client.post("/api/decisions", json={"symbol": sym, "action": "buy"}).status_code == 422
     assert client.patch(f"/api/portfolio/{sym}", json={"thesis": "Compounding at 15%"}).json()["thesis"] == "Compounding at 15%"
 
@@ -135,3 +137,14 @@ def test_jobs_need_token(client):
 def test_push_test_goes_to_inbox(client):
     assert client.post("/api/push/test").json()["channel"] == "inbox"
     assert client.get("/api/notifications").json()["unread"] >= 1
+
+
+def test_actual_short_for_red_pen():
+    from types import SimpleNamespace as NS
+    from app.api.companies import actual_short
+    v = lambda val, method="table": NS(actual_value=val, method=method)
+    assert actual_short(NS(metric_key="ebitda_margin", unit="%"), v(21.84)) == "21.8%"
+    assert actual_short(NS(metric_key="revenue_growth", unit="%"), v(-3.2)) == "−3.2%"
+    assert actual_short(NS(metric_key="capex", unit="cr"), v(1234.0)) == "₹1,234 cr"
+    assert actual_short(NS(metric_key="ebitda_margin", unit="%"), v(21.8, "llm")) is None  # an LLM verdict has no number
+    assert actual_short(NS(metric_key="ebitda_margin", unit="%"), None) is None
