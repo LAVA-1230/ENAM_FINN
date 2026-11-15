@@ -36,6 +36,8 @@ A mobile-first investment agent for a concentrated portfolio of Indian stocks, w
 
 **Without any API keys the app still runs:** rule-based parsers and templates replace the LLM, the in-app inbox replaces web push, and bios fall back to the filing's own profile.
 
+**Considered an NSE MCP server;** used it during development to inspect live data, but kept the runtime on a direct fetcher, because MCP suits model tool-calling, not scheduled ingestion, and Pull must stay grounded in documents only.
+
 ## Run locally
 
 **Prerequisites:** Python 3.11, Node.js 20, and internet access (bootstrap downloads prices from Yahoo and filings from NSE and screener.in). No accounts or keys are needed: the default database is a local SQLite file.
