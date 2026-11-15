@@ -7,7 +7,7 @@ A mobile-first investment agent for a concentrated portfolio of Indian stocks, w
 - **Push:** a windowed brief of NSE filings and EOD price/volume moves, ranked, with routine items counted instead of shown. Includes verified results cards (Rev / EBITDA / PBT / PAT with QoQ and YoY), management-change cards with bios and cluster checks, configurable thresholds, tripwires, an audio brief and web push for urgent items only.
 - **Pull:** research on any NSE ticker, grounded only in the last 4 concall transcripts and the latest annual report: a promise ledger (what management promised vs what it delivered) with a guidance filter, a financial snapshot, the multi-year trajectory, the balance sheet, cash quality, the business mix, bull vs bear, and Ask with numbered citations.
 
-- Deployed app: _(link to be added)_
+- **Deployed app: https://enam-finn-ecru.vercel.app/** (best on a phone; on iPhone, add it to the Home Screen for push). The free backend sleeps when idle, so the first load can take up to a minute.
 - Write-up: [docs/WRITEUP.md](docs/WRITEUP.md)
 - Spec: [FINN_BUILD_SPEC.md](FINN_BUILD_SPEC.md) and [FINN_DESIGN_SYSTEM.md](FINN_DESIGN_SYSTEM.md)
 
