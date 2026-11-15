@@ -1,0 +1,1598 @@
+ ▐▛███▛█   Claude Code v2.1.325
+▝▜██████▀  Opus 5.5 · Claude Pro
+ ▝▝   ▝▝   ~\OneDrive\Desktop\ENAM_AI_Assignment
+
+  Fable 5.2 is here for your longest and toughest coding tasks, and is included in your plan until November 16. It draws down usage faster than Opus 5.5. Switch with /model.
+  ⎿  SessionStart:clear says: [ENAM_AI_Assignment] recent context, 2026-11-13 
+     12:46am GMT+5:30
+     ────────────────────────────────────────────────────────────
+
+     Legend: session-request | 🔴 bugfix | 🟣 feature | 🔄 refactor | ✅ change 
+     | 🔵 discovery | ⚖️ decision
+
+     Column Key
+       Read: Tokens to read this observation (cost to learn it now)
+       Work: Tokens spent on work that produced this record ( research, 
+     building, deciding)
+
+     Context Index: This semantic index (titles, types, files, tokens) is 
+     usually sufficient to understand past work.
+
+     When you need implementation details, rationale, or debugging context:
+       - Fetch by ID: get_observations([IDs]) for observations visible in this 
+     index
+       - Search history: Use the mem-search skill for past decisions, bugs, and 
+     deeper research
+       - Trust this index over re-reading code for past decisions and learnings
+
+     Context Economics
+       Loading: 50 observations (30,370 tokens to read)
+       Work investment: 555,051 tokens spent on research, building, and 
+     decisions
+       Your savings: 95% reduction from reuse
+
+     Nov 13, 2026
+
+     backend/app/fiscal.py
+       #489  12:00 AM  🟣  Indian fiscal year date utilities implemented
+     backend/app/fmt.py
+       #490            🟣  Core utilities: number formatting, HTTP client, and
+     price data ingestion  
+     General
+       #491  12:01 AM  🔵  NSE filing categories and KMP change patterns
+     validated from live data  
+     backend/app/sources/nse.py
+       #492  12:02 AM  🟣  NSE and PDF source modules with session management
+     and intelligent page selection  
+     backend/app/sources/screener.py
+       #493            🟣  Screener.in parser implemented: quarterly/annual
+     financials, documents, bank detection  
+     General
+       #494  12:03 AM  🔵  Screener parser validated on TITAN and HDFCBANK with
+     correct bank detection  
+     backend/app/llm/client.py
+       #495  12:04 AM  🟣  Provider-agnostic LLM client with caching, budget
+     control, and multi-provider support  
+     backend/app/llm/guard.py
+       #496            🟣  LLM guardrails: citation validation, number
+     verification, banned phrase filter  
+     backend/app/llm/prompts/classify_filing.md
+       #497            🟣  LLM prompt templates created for filing
+     classification and extraction  
+     backend/app/llm/prompts/one_liner.md
+       #498  12:05 AM  🟣  Complete prompt library: 11 templates covering
+     extraction, enrichment, Pull research, and verdicts  
+     backend/app/push/rules.py
+       #499  12:06 AM  🟣  Regex-based filing classifier with 19 categories and
+     smart deduplication rules  
+     backend/app/llm/schemas.py
+       #500  12:07 AM  🟣  Pydantic schemas, classifier orchestrator, and
+     priority scoring engine complete  
+     backend/app/portfolio.py
+       #501  12:09 AM  🟣  Portfolio calculations and CalendarItem model added
+     backend/app/push/enrich/base.py
+       #502  12:10 AM  🟣  Enrichment handler base utilities with separation of
+     facts/context/enrichment  
+     backend/app/push/enrich/results.py
+       #503  12:11 AM  🟣  Quarterly results enrichment handler with
+     zero-LLM-cost parser and multi-tier validation  
+     backend/app/push/enrich/kmp.py
+       #504  12:12 AM  🟣  KMP/auditor change enrichment handler with cluster
+     detection and bio generation  
+     backend/app/sources/websearch.py
+       #505  12:13 AM  🟣  Other-category enrichment, websearch integration, and
+     price/volume signal detector complete  
+     backend/app/push/ingest.py
+       #506  12:15 AM  🟣  Push engine complete: ingest pipeline, P0
+     notifications, digest builder, audio script  
+     backend/app/push/audio.py
+       #507  12:16 AM  🟣  Job orchestration, CLI, tripwires system, and audio
+     refinement complete  
+     backend/app/push/tripwires.py
+       #508            🟣  Backend bootstrap in progress: seed + prices + 30
+     days filings  
+     backend/app/pull/chunks.py
+       #509  12:17 AM  🟣  Pull engine chunks and retrieval: speaker-aware
+     transcript splitting, BM25 search without embeddings  
+     backend/app/pull/promises.py
+       #510  12:18 AM  🟣  Promise extraction: forward-looking commitments
+     tracker with LLM + heuristic fallback  
+     General
+       #511  12:20 AM  🔴  Bootstrap complete: 370 filings processed, 360 events
+     created, 82% classified by rules (zero LLM cost)  
+     backend/app/pull/financials.py (created: screener.in quarterly/yearly 
+     loader, sector mapping, 59 lines)
+       #512  12:24 AM  🔴  Push engine refinements: period extraction, weekend
+     filing windows, batch storage for sibling lookups, cleaner titles  
+     backend/app/push/enrich/results.py (complete parser rewrite: ~110 lines 
+     replaced, added 
+     find_dates/line_numbers/pick_statement_pages/detect_unit/reconcile_unit 
+     functions, modified heuristic_extract/_extract_page/_row_values)
+       #513            🟣  Enhanced results parser: multi-format dates,
+     multi-page tries, unit reconciliation, same-line number extraction  
+     backend/app/models.py
+       #515  12:34 AM  🟣  Database field added for PDF text storage to support
+     chatbot queries  
+       #516  12:35 AM  🟣  Document model extended with page-level text storage
+      
+     backend/app/push/enrich/base.py
+       #517            🟣  PDF extraction now persists text to database
+     automatically  
+     backend/app/push/enrich/results.py
+       #518            🟣  Results enrichment now stores PDF text in database
+     backend/app/sources/pdf.py
+       #519            🟣  PDF download retry mechanism for handling truncated
+     files  
+       #520            🟣  Parallel PDF download and extraction with prefetch
+     function  
+       #521            ✅  Download rate limiting reduced from 1.0s to 0.4s per
+     request  
+     backend/app/push/ingest.py
+       #522            🟣  Selective PDF downloading based on filing category
+       #523  12:36 AM  🔄  Ingestion pipeline restructured into three-phase
+     batch processing  
+     backend/app/push/rules.py
+       #524            🔴  Classification rule ordering fixed to prevent results
+     misclassification  
+     backend/app/jobs/runner.py
+       #525  12:37 AM  🟣  Price history fetching parallelized with 6 concurrent
+     workers  
+       #526            🟣  New load_financials job for screener.in data import
+       #527            🟣  Bootstrap process enhanced with financials job and
+     live progress tracking  
+     backend/app/pull/verdict.py
+       #528  12:38 AM  🟣  Promise verdict tracking system for management
+     commitment monitoring  
+     backend/app/pull/cards.py
+       #529  12:39 AM  🟣  Research cards system for company analysis and
+     investment thesis  
+     General
+       #530            ✅  Bootstrap test completed successfully with
+     performance optimizations  
+       #531  12:40 AM  ✅  Verification confirms optimized system correctly
+     processes real filings  
+     backend/app/push/enrich/results.py
+       #532            🔴  EBITDA calculation, lender detection, and KMP
+     deduplication fixes  
+     backend/app/pull/ingest.py
+       #533  12:41 AM  🟣  Research pipeline orchestrator for any-ticker
+     analysis with database persistence  
+     General
+       #534  12:43 AM  ✅  Complete system validated with end-to-end test
+     showing all optimizations working  
+     backend/app/pull/chunks.py
+       #535  12:44 AM  🔴  Transcript speaker detection improved to filter
+     letterhead and identify analysts  
+     General
+       #536  12:45 AM  ✅  Promise tracking system validated with real
+     transcript data  
+     backend/app/pull/promises.py
+       #537            🔴  Promise extraction refined to reduce false positives
+      
+       #538            🟣  Date-based promise extraction for non-numeric
+     commitments  
+     General
+       #539  12:46 AM  ✅  Refined promise extraction validated with
+     significantly improved precision  
+
+
+     Access 555k tokens of past research & decisions for just 30,370t. Use the 
+     claude-mem skill to access memories by ID.
+
+     View Observations Live @ http://localhost:37777
+
+❯ /clear                                                                        
+
+❯ I will provide these things later, leave it as blank as of now and implement  
+  the rest part                                                                 
+
+● I'll check the project state to work out what "these things" refers to, since
+  the context was just cleared.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && ls -la && git
+      log --oneline -5 2>/dev/null; ls docs* plan* *.md 2>/dev/null; find .
+      -maxdepth 3 -name…)
+  ⎿  total 412
+     drwxr-xr-x 1 lavan 197609      0 Nov 12 23:51 .
+     drwxr-xr-x 1 lavan 197609      0 Nov 12 22:20 ..
+     … +9 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && find backend
+      -maxdepth 3 -not -path "*/__pycache__*" -not -path "*/.venv*" -not -path
+      "*/cache/*" | h…)
+  ⎿  backend
+     backend/.ruff_cache
+     backend/.ruff_cache/.gitignore
+     … +187 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && sed -n 1,320p
+      FINN_BUILD_SPEC.md; ls -la backend backend/app/api backend/app/push/enrich
+      backend/app/…)
+  ⎿  # FINN: Build Specification for Claude Code
+
+     > **What this file is.** The complete brief for building FINN end to e
+     … +365 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && sed -n
+      320,760p FINN_BUILD_SPEC.md)
+  ⎿  ```
+     company        id, symbol (unique), name, isin, bse_code, sector, sect
+     or_index,
+     … +437 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && sed -n
+      760,1000p FINN_BUILD_SPEC.md)
+  ⎿  ### 12.2 Design tokens (match the approved prototype)
+
+     ```
+     … +238 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && sed -n
+      1000,1300p FINN_BUILD_SPEC.md)
+  ⎿  ### 17.1 Classifier rules (starting set; tune on live data)
+
+     Match on NSE's category text (`desc`) **and** the subject (`attchmntTe
+     … +169 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && cat
+      app/config.py app/db.py; ls scripts seed snapshots tests; ls -a; cat
+      requirements*.txt py…)
+  ⎿  from functools import lru_cache
+     from pathlib import Path
+     … +172 lines (ctrl+o to expand)
+
+● I'll leave the human prerequisites in spec §4.4 (API keys, deploy accounts)
+  blank in .env.example, then build the FastAPI app, routers, Ask/prep, replay,
+  frontend and repo files, starting by reading the existing backend modules. 
+  · summary
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && cat
+      app/models.py app/portfolio.py app/fmt.py)
+  ⎿  """SQLAlchemy models (spec section 6). All timestamps are naive UTC.""
+     "
+     from datetime import date, datetime
+     … +505 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && cat
+      app/push/digest.py app/push/audio.py app/push/notify.py
+      app/push/tripwires.py app/jobs/ru…)
+  ⎿  """The windowed brief (spec 7.7). Templated, no LLM: header, attention
+     , FYI, routine (counted), coming up."""
+     from collections import defaultdict
+     … +633 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && cat
+      app/pull/ingest.py app/pull/cards.py app/pull/retrieval.py)
+  ⎿  """Any-ticker research cold start (spec 8.1). Runs in a background thr
+     ead; progress is stored in
+     company_research.progress and polled by the UI.
+     … +585 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && cat
+      app/llm/guard.py app/llm/schemas.py app/llm/prompts/ask_answer.md; sed -n
+      1,60p app/llm/c…)
+  ⎿  """Guardrails on generated text (spec 10.5).
+
+     - citation check: every sentence must end with [n] markers that exist
+     … +511 lines (ctrl+o to expand)
+
+● Still mapping the existing backend (verdict, usage, scoring) before writing
+  the API layer — almost done reading.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && sed -n
+      175,230p app/pull/verdict.py; sed -n 39,78p app/llm/usage.py; cat
+      app/push/score.py |…)
+  ⎿          res[v["promise_id"]] = {"status": v["status"], "actual_text":
+     re.sub(r"\s*\[\d+\]", "", v.get("actual_text") or "") or None,
+                                     "actual_value": None, "method": "llm",
+     … +235 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && python
+      -m pip list 2>/dev/null | grep -iE
+      "fastapi|uvicorn|sqlalchemy|pydantic|rank|pymupdf|y…)
+  ⎿  beautifulsoup4               4.14.3
+     fastapi                      0.135.1
+     httpx                        0.28.1
+     … +98 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && sed -n 80,400p
+      FINN_DESIGN_SYSTEM.md)
+  ⎿  - **No monospace anywhere.** Tabular figures do the alignment job with
+     out the "terminal" look.
+     - **VERIFY** `tnum` works in the loaded Plex files (check a column of
+     … +269 lines (ctrl+o to expand)
+
+● Now I have the full picture. Checking the event payload shapes the enrichers
+  produce so the frontend renders them correctly.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && sed -n
+      315,425p app/push/enrich/results.py; sed -n 193,267p
+      app/push/enrich/kmp.py; sed -n 21…)  ⎿  def enrich(ctx: Ctx) -> EnrichResult:
+         f = ctx.filing
+         period = results_period(f.subject, f.published_at.date(), (f.raw o
+     … +208 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && sed -n
+      164,192p app/push/enrich/kmp.py; grep -n "enrichment\[\|enrichment
+      =\|\"size\"\|enrich…)
+  ⎿  def bio(ctx: Ctx, name: str | None, role: str | None, profile_text: st
+     r | None) -> dict | None:
+         if not name:
+     … +84 lines (ctrl+o to expand)
+
+● Writing the backend API layer now.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && sed -n
+      93,98p app/push/price_signals.py; sed -n 1,30p app/llm/cache.py; sed -n
+      58,100p app/ll…)
+  ⎿  def _move_dict(mv: portfolio.Move) -> dict:
+         return {"date": mv.d.isoformat(), "ret": mv.ret, "index": portfoli
+     o.index_name(mv.index_sym), "index_ret": mv.index_ret,
+     … +71 lines (ctrl+o to expand)
+
+● Write(backend\app\pull\ask.py)
+  ⎿  Wrote 229 lines to backend\app\pull\ask.py
+       1 """Ask (spec 8.7): answers grounded only in one company's transc
+         ripts, annual-report pages, filings and
+       2 tables computed from its filings. Portfolio-level questions are 
+         answered from computed data, no retrieval.
+       3 
+       4 Smart model when a key is set; otherwise an extractive answer th
+         at quotes the best-matching passages.
+       5 Either way the guard keeps only sentences with a valid [n] citat
+         ion and numbers found in the cited source."""
+       6 import logging
+     … +223 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && python
+      - <<'EOF'
+      p='app/pull/ask.py'…)
+  ⎿  (No output)
+
+● Now the API routers.
+
+● Write(backend\app\api\common.py)
+  ⎿  Wrote 89 lines to backend\app\api\common.py
+       1 """Helpers shared by the routers."""
+       2 from datetime import datetime, timedelta, timezone
+       3 
+       4 from fastapi import Depends, HTTPException
+       5 from sqlalchemy import select
+       6 from sqlalchemy.orm import Session
+       7 
+       8 from .. import portfolio
+       9 from ..db import get_db
+      10 from ..models import Company, CompanyResearch, Decision, Documen
+     … +80 lines (~4 KB) (ctrl+o to expand)
+
+● Write(backend\app\api\brief.py)
+  ⎿  Wrote 30 lines to backend\app\api\brief.py
+      1 from datetime import datetime
+      2 
+      3 from fastapi import APIRouter
+      4 from sqlalchemy.orm import Session
+      5 
+      6 from ..push import audio
+      7 from ..push.digest import build_brief
+      8 from ..push.ingest import get_settings_row
+      9 from .common import DB
+     … +21 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && python
+      - <<'EOF'
+      p='app/api/brief.py'…)
+  ⎿  (No output)
+
+● Write(backend\app\api\events.py)
+  ⎿  Wrote 74 lines to backend\app\api\events.py
+      1 from fastapi import APIRouter, HTTPException
+      2 from pydantic import BaseModel
+      3 from sqlalchemy import select
+      4 from sqlalchemy.orm import Session
+      5 
+      6 from ..models import Company, Event, Filing
+      7 from ..pull.ask import suggested
+      8 from ..push.digest import decision_dict, event_card
+      9 from .common import DB, exposure, iso, last_decision
+     … +65 lines (ctrl+o to expand)
+
+● Write(backend\app\api\portfolio.py)
+  ⎿  Wrote 67 lines to backend\app\api\portfolio.py
+       1 from datetime import datetime, timedelta
+       2 
+       3 from fastapi import APIRouter, HTTPException
+       4 from pydantic import BaseModel
+       5 from sqlalchemy import select
+       6 from sqlalchemy.orm import Session
+       7 
+       8 from .. import portfolio
+       9 from ..models import Event
+      10 from ..sources.prices import latest_date
+     … +57 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && grep
+      -n "evidence" app/pull/verdict.py | head; sed -n 100,140p
+      app/pull/verdict.py; grep -n "…)
+  ⎿  63:                "evidence": [{"kind": "table", "label": f"{fy.fy} b
+     alance sheet, screener.in", "url": screener_url}]}
+     73:                "evidence": [{"kind": "table", "label": f"{fy.fy} c
+     … +55 lines (ctrl+o to expand)
+
+● Write(backend\app\api\companies.py)
+  ⎿  Wrote 205 lines to backend\app\api\companies.py
+       1 from datetime import date, datetime, timedelta
+       2 
+       3 from fastapi import APIRouter
+       4 from pydantic import BaseModel
+       5 from sqlalchemy import delete, select
+       6 from sqlalchemy.orm import Session
+       7 
+       8 from .. import portfolio
+       9 from ..models import CalendarItem, Chunk, Decision, Document, Ev
+         ent, FinancialQ, FinancialY, Promise, PromiseVerdict, Tripwire
+     … +196 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && python
+      - <<'EOF'
+      p='app/api/companies.py'…)
+  ⎿  (No output)
+
+● Backend routers half done (brief, events, portfolio, companies, Ask engine).
+  Writing research, settings, decisions, push, jobs, replay next.
+
+● Write(backend\app\api\research.py)
+  ⎿  Wrote 67 lines to backend\app\api\research.py
+       1 import re
+       2 import threading
+       3 
+       4 from fastapi import APIRouter, HTTPException
+       5 from sqlalchemy import select
+       6 from sqlalchemy.orm import Session
+       7 
+       8 from ..models import Company, CompanyResearch
+       9 from ..pull import ingest
+      10 from .common import DB, research_row
+     … +57 lines (ctrl+o to expand)
+
+● Write(backend\app\api\ask.py)
+  ⎿  Wrote 28 lines to backend\app\api\ask.py
+      1 from fastapi import APIRouter, HTTPException
+      2 from pydantic import BaseModel
+      3 from sqlalchemy.orm import Session
+      4 
+      5 from ..models import Event
+      6 from ..pull import ask as ask_engine
+      7 from .common import DB
+      8 
+      9 router = APIRouter(tags=["ask"])
+     … +19 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && sed -n
+      29,60p app/push/price_signals.py; sed -n 45,85p app/push/score.py)
+  ⎿  def evaluate(db: Session, settings: AppSettings, d: date | None = None
+     ) -> list[dict]:
+         """Event dicts for one session (default: the latest stored)."""
+     … +70 lines (ctrl+o to expand)
+
+❯ /subtask tell how much backend is done and when will the frontend task will be started 
+  ⎿  ⑂ forked tell-how-much (a4fa)
+
+● Agent "tell how much backend is done and when will the f…" finished · 8s
+
+● The core backend is finished, and I've written the Ask engine plus 7 API
+  routers that haven't been run or tested yet. Next I'll write the remaining
+  routers, main.py, requirements.txt and .env.example, leaving the API keys
+  blank, then smoke-test the API before starting the frontend. · summary
+
+● Write(backend\app\api\settings.py)
+  ⎿  Wrote 118 lines to backend\app\api\settings.py
+       1 from types import SimpleNamespace
+       2 
+       3 from fastapi import APIRouter, HTTPException
+       4 from pydantic import BaseModel
+       5 from sqlalchemy import select
+       6 from sqlalchemy.orm import Session
+       7 
+       8 from .. import portfolio
+       9 from ..models import Event, PriceDaily
+      10 from ..push import price_signals
+     … +108 lines (ctrl+o to expand)
+● Write(backend\app\api\decisions.py)
+  ⎿  Wrote 47 lines to backend\app\api\decisions.py
+       1 from fastapi import APIRouter, HTTPException
+       2 from pydantic import BaseModel
+       3 from sqlalchemy import select
+       4 from sqlalchemy.orm import Session
+       5 
+       6 from ..models import Company, Decision, Event
+       7 from ..push.digest import decision_dict
+       8 from .common import DB, company_or_404
+       9 
+      10 router = APIRouter(tags=["decisions"])
+     … +37 lines (ctrl+o to expand)
+
+● Write(backend\app\api\push.py)
+  ⎿  Wrote 56 lines to backend\app\api\push.py
+      1 from fastapi import APIRouter
+      2 from pydantic import BaseModel
+      3 from sqlalchemy import select, update
+      4 from sqlalchemy.orm import Session
+      5 
+      6 from ..config import get_settings
+      7 from ..models import Notification, PushSub
+      8 from ..push import notify
+      9 from .common import DB, iso
+     … +47 lines (ctrl+o to expand)
+
+● Write(backend\app\api\jobs.py)
+  ⎿  Wrote 40 lines to backend\app\api\jobs.py
+       1 """Token-protected job endpoints, called by the GitHub Actions c
+         ron (spec 13.2). Jobs run in a background
+       2 thread so the cron request returns at once; the result lands in 
+         job_run."""
+       3 import hmac
+       4 import threading
+       5 
+       6 from fastapi import APIRouter, Header, HTTPException
+       7 from sqlalchemy import select
+       8 from sqlalchemy.orm import Session
+     … +32 lines (ctrl+o to expand)
+
+● Write(backend\app\api\replay.py)
+  ⎿  Wrote 82 lines to backend\app\api\replay.py
+      1 """Replay mode (spec 13.5): the snapshot job records the API's ow
+        n responses for a window into
+      2 snapshots/<label>.json; when replay is on (?replay=<label> or the
+         settings toggle), GET requests are served
+      3 from that file and carry an X-Finn-Replay header so the UI can sh
+        ow its banner. Live mode is the default."""
+      4 import json
+      5 import logging
+      6 from datetime import datetime, timedelta
+      7 from functools import lru_cache
+     … +75 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && python
+      - <<'EOF'
+      p='app/api/replay.py'…)
+  ⎿  (No output)
+
+● Write(backend\app\api\system.py)
+  ⎿  Wrote 73 lines to backend\app\api\system.py
+       1 """Health, LLM usage and the 'tap to verify' source redirects.""
+         "
+       2 from fastapi import APIRouter, HTTPException
+       3 from fastapi.responses import RedirectResponse
+       4 from sqlalchemy import func, select
+       5 from sqlalchemy.orm import Session
+       6 
+       7 from ..config import get_settings
+       8 from ..llm import client as llm
+       9 from ..llm import usage
+     … +64 lines (ctrl+o to expand)
+
+● Write(backend\app\main.py)
+  ⎿  Wrote 80 lines to backend\app\main.py
+       1 """FastAPI app: routers under /api, CORS for the frontend, repla
+         y middleware, DB init (and seed on an empty DB)."""
+       2 import json
+       3 import logging
+       4 import re
+       5 from contextlib import asynccontextmanager
+       6 
+       7 from fastapi import FastAPI, Request
+       8 from fastapi.middleware.cors import CORSMiddleware
+       9 from fastapi.responses import JSONResponse, Response
+     … +71 lines (ctrl+o to expand)
+
+● Now requirements and .env.example (keys left blank), then a smoke test.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && grep
+      -rhoE "^(from|import) [a-z_0-9]+" app scripts | sort -u | grep -vE "
+      (app|\.)" ; ls -a .…)
+  ⎿  Error: Exit code 1
+     from bs4
+     from collections
+     from concurrent
+     from contextlib
+     from dataclasses
+     from datetime
+     from fastapi
+     from functools
+     from pathlib
+     … +29 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && grep
+      -rn "lxml\|html.parser\|pywebpush\|yfinance\|psycopg" app | head -5
+      cat > requirements.t…)
+  ⎿  app/db.py:16:        url = url.replace("postgres://", "postgresql+psyc
+     opg://", 1)
+     app/db.py:18:        url = url.replace("postgresql://", "postgresql+ps
+     … +7 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && sed -i
+      's|^DATA_DIR=./data .*|# DATA_DIR=./data                        # PDF
+      download cache (…)
+  ⎿  Traceback (most recent call last):
+       File "C:\Users\lavan\AppData\Local\Temp\claude\C--Users-lavan-OneDri
+     ve-Desktop-ENAM-AI-Assignment\ca8c350d-e109-47e2-adf4-268c80caf7a2\scr
+     … +3 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" &&
+      SP="C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneDrive-Deskt
+      op-ENAM-AI-Assignme…)
+  ⎿  200  0.06s /api/health
+     {"ok": true, "replay": false, "snapshots": [], "last": {"ingest_filing
+     s": {"at": "2026-11-12T19:12:47.694604Z", "label": "00:42, 13 Nov"}, "
+     … +48 lines (ctrl+o to expand)
+
+● Most endpoints pass. The no-LLM Ask fallback returned a fragment ("y
+  Dashboards for Real…"), so I'm tightening its sentence selection.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && python
+      - <<'EOF'
+      p='app/pull/ask.py'…)
+  ⎿  Error: Exit code 1
+     Traceback (most recent call last):
+       File 
+     "C:\Users\lavan\AppData\Local\Temp\claude\C--Users-lavan-OneDrive-Desktop-E
+     NAM-AI-Assignment\ca8c350d-e109-47e2-adf4-268c80caf7a2\scratchpad\ask.py", 
+     line 2, in <module>
+         from app.pull.ask import answer
+       File "C:\Users\lavan\OneDrive\Desktop\ENAM_AI_Assignment\backend\app\pull
+     \ask.py", line 142
+         for line in s["text"].split("
+                                     ^
+     SyntaxError: unterminated string literal (detected at line 142)
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Update(backend\app\pull\ask.py)
+  ⎿  Added 1 line, removed 2 lines
+      139      cands = []
+      140      for s in sources:
+      141          if s["kind"] in ("table", "promises"):
+      142 -            for line in s["text"].split("                     
+      143 -"):                                                           
+      142 +            for line in s["text"].splitlines():               
+      143                  sc = score(line)
+      144                  if sc:
+      145                      cands.append((sc + (1 if s["kind"] == "pro
+           mises" else 0), f"{line.strip()}. [{s['n']}]"))
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" &&
+      SP="C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneDrive-Deskt
+      op-ENAM-AI-Assignme…)
+  ⎿  Q: What margin did management guide for this year? POLYCAB
+     A: Consistent with our Project Spring roadmap, we continue to maintain
+      our medium- to long-term margin guidance of 11% to 13% for this busin
+     … +32 lines (ctrl+o to expand)
+
+● Ask works without an LLM key now. Running the rest of the smoke test.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" &&
+      SP="C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneDrive-Deskt
+      op-ENAM-AI-Assignme…)
+  ⎿  ask-pf Your book moved +1.17% (+₹1.2 lakh). Mahindra & Mahindra caused
+      31% of it. Nifty rose 0.84%. Your book did 0.33 pts better than the m
+     arket. [1] Largest contributors: Mahindra & Mahindra +₹35.9k, Trent +₹
+     … +16 lines (ctrl+o to expand)
+
+● All endpoints pass. Testing snapshot + replay mode.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" &&
+      SP="C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneDrive-Deskt
+      op-ENAM-AI-Assignme…)
+  ⎿    "label": "smoketest",
+       "responses": 599,
+       "failed": 0
+     … +10 lines (ctrl+o to expand)
+
+● Replay works. Adding an API contract test that runs on an empty DB (for CI),
+  then starting the frontend.
+
+● Write(backend\tests\test_api.py)
+  ⎿  Wrote 84 lines to backend\tests\test_api.py
+       1 """API contract test on a fresh, empty database (no network): ev
+         ery read endpoint answers, and the
+       2 empty states are sentences, not errors. Run: cd backend && pytho
+         n -m pytest -q"""
+       3 import os
+       4 import tempfile
+       5 
+       6 import pytest
+       7 
+       8 _db = os.path.join(tempfile.mkdtemp(), "contract.db")
+     … +76 lines (ctrl+o to expand)
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && python
+      -m pytest -q tests 2>&1 | tail -15)
+  ⎿  ........................
+        [100%]
+     24 passed in 2.83s
+
+● Backend complete: 24/24 tests pass, all endpoints smoke-tested, replay
+  verified. Starting the frontend now (Next.js + Tailwind, following
+  FINN_DESIGN_SYSTEM.md). Installing packages first.
+
+● Bash(mkdir -p "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" &&
+      cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && cat >
+      package.json…)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && cat >
+      tsconfig.json <<'EOF'
+      {…)
+  ⎿  ok
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && sed
+      -i 's|"on-ink": "var(--on-ink)", "on-ink-2": "var(--on-ink-2)",|head:
+      "var(--head)", "on…)
+  ⎿  ok
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && cat >
+      lib/types.ts <<'EOF'
+      // Mirrors the backend payloads (backend/app/api). Optional field…)
+  ⎿  Error: Exit code 2
+     /usr/bin/bash: -c: line 127: unexpected EOF while looking for matching `''
+
+● Background command "Create package.json and install deps" completed (exit code
+0)
+
+● I'll switch to the Write tool for frontend files (the heredoc tripped on
+  quoting).
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && ls
+      lib; tail -3 "C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneD
+      rive-Desktop-EN…)
+  ⎿  npm notice
+
+     [exited with code 0]
+     93
+
+● Write(frontend\lib\types.ts)
+  ⎿  Wrote 86 lines to frontend\lib\types.ts
+       1 // Mirrors the backend payloads (backend/app/api). Optional fiel
+         ds are absent on some event kinds.
+       2 export type Tier = "P0" | "P1" | "P2" | "P3";
+       3 
+       4 export interface Decision { id: number; action: string; note: st
+         ring | null; date: string; event_id: number | null; symbol?: str
+         ing; company?: string }
+       5 
+       6 export interface EventCard {
+       7   id: number; symbol: string | null; company: string | null; kin
+     … +80 lines (~5 KB) (ctrl+o to expand)
+
+● Write(frontend\lib\api.ts)
+  ⎿  Wrote 55 lines to frontend\lib\api.ts
+       1 // API client. Base URL from NEXT_PUBLIC_API_BASE. Replay respon
+         ses carry X-Finn-Replay, which feeds the banner.
+       2 export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "ht
+         tp://localhost:8000").replace(/\/$/, "");
+       3 
+       4 type Listener<T> = (v: T) => void;
+       5 let replayLabel: string | null = null;
+       6 const replayListeners = new Set<Listener<string | null>>();
+       7 const slowListeners = new Set<Listener<boolean>>();
+       8 
+     … +47 lines (ctrl+o to expand)
+
+● Write(frontend\lib\fmt.ts)
+  ⎿  Wrote 64 lines to frontend\lib\fmt.ts
+       1 // Same rules as backend/app/fmt.py: true minus sign, Indian gro
+         uping, one abbreviation style.
+       2 export const MINUS = "−";
+       3 
+       4 export function signedPct(x: number | null | undefined, digits =
+          1): string {
+       5   if (x === null || x === undefined || Number.isNaN(x)) return "
+         n/a";
+       6   return (x >= 0 ? "+" : MINUS) + Math.abs(x).toFixed(digits) + 
+         "%";
+     … +58 lines (ctrl+o to expand)
+
+● Write(frontend\lib\voice.ts)
+  ⎿  Wrote 60 lines to frontend\lib\voice.ts
+       1 // Browser speech: recognition for push-to-talk Ask, synthesis f
+         or Listen. Feature-detected; no server audio.
+       2 export function canListen(): boolean {
+       3   return typeof window !== "undefined" && "speechSynthesis" in w
+         indow;
+       4 }
+       5 
+       6 export function canDictate(): boolean {
+       7   if (typeof window === "undefined") return false;
+       8   const w = window as any;
+     … +52 lines (ctrl+o to expand)
+
+● Write(frontend\lib\push.ts)
+  ⎿  Wrote 32 lines to frontend\lib\push.ts
+       1 import { api, send } from "./api";
+       2 
+       3 export function pushSupported(): boolean {
+       4   return typeof window !== "undefined" && "serviceWorker" in nav
+         igator && "PushManager" in window && "Notification" in window;
+       5 }
+       6 
+       7 export function isIosNotInstalled(): boolean {
+       8   if (typeof window === "undefined") return false;
+       9   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+     … +23 lines (ctrl+o to expand)
+
+● Now the shared components.
+
+● Write(frontend\components\icons.tsx)
+  ⎿  Wrote 46 lines to frontend\components\icons.tsx
+       1 // Six line icons drawn once at a 1.75px stroke (design system 6
+         .7). Always paired with a label in navigation.
+       2 type P = { size?: number; className?: string };
+       3 const base = (size = 22) => ({
+       4   width: size, height: size, viewBox: "0 0 24 24", fill: "none",
+          stroke: "currentColor", strokeWidth: 1.75,
+       5   strokeLinecap: "round" as const, strokeLinejoin: "round" as co
+         nst, "aria-hidden": true,
+       6 });
+       7 
+     … +39 lines (ctrl+o to expand)
+
+● Write(frontend\components\ui.tsx)
+  ⎿  Wrote 133 lines to frontend\components\ui.tsx
+       1 "use client";
+       2 import { ReactNode, useEffect } from "react";
+       3 import { IconClose } from "./icons";
+       4 
+       5 /** Urgency marks replace P0-P3 chips: words, with hierarchy by 
+         weight (design system 6.1). */
+       6 export function Urgency({ tier }: { tier: string }) {
+       7   if (tier === "P0") return <span className="inline-block rounde
+         d-tag bg-down px-1.5 text-small font-semibold text-white">Urgent
+         </span>;
+     … +126 lines (ctrl+o to expand)
+
+● Update(frontend\components\ui.tsx)
+  ⎿  Added 1 line, removed 1 line
+       96    if (!open) return null;
+       97    return (
+       98      <div className="fixed inset-0 z-50 flex items-end justify-
+           center" role="dialog" aria-modal="true" aria-label={label}>
+       99 -      <button className="absolute inset-0 bg-ink/30 fade-in" a
+          -ria-label="Close" onClick={onClose} />                        
+       99 +      <button className="absolute inset-0 fade-in" style={{ ba
+          +ckground: "rgba(18, 23, 31, 0.35)" }} aria-label="Close" onCli
+          +ck={onClose} />                                               
+      100        <div className="sheet-up relative flex max-h-[80vh] w-fu
+           ll max-w-app flex-col rounded-t-sheet bg-sheet"
+      101             style={{ boxShadow: "var(--float)" }}>
+      102          <div className="flex items-center justify-between px-4
+            pt-2">
+
+● Write(frontend\components\providers.tsx)
+  ⎿  Wrote 41 lines to frontend\components\providers.tsx
+       1 "use client";
+       2 import { QueryClient, QueryClientProvider } from "@tanstack/reac
+         t-query";
+       3 import { createContext, ReactNode, useCallback, useContext, useE
+         ffect, useState } from "react";
+       4 import type { Citation } from "@/lib/types";
+       5 import { AskSheet } from "./ask-sheet";
+       6 import { SourceSheet } from "./source-sheet";
+       7 
+       8 export interface AskContext { symbol?: string | null; eventId?: 
+     … +34 lines (~1 KB) (ctrl+o to expand)
+
+● Write(frontend\components\source-sheet.tsx)
+  ⎿  Wrote 29 lines to frontend\components\source-sheet.tsx
+       1 "use client";
+       2 import type { Citation } from "@/lib/types";
+       3 import { BottomSheet, Quote } from "./ui";
+       4 
+       5 /** Tap any citation: the document, period and page, the cited e
+         xcerpt, and the PDF opened at that page. */
+       6 export function SourceSheet({ citation, onClose }: { citation: C
+         itation | null; onClose: () => void }) {
+       7   const c = citation;
+       8   const external = c?.url && /^https?:/.test(c.url);
+     … +21 lines (ctrl+o to expand)
+
+● Write(frontend\components\ask-sheet.tsx)
+  ⎿  Wrote 174 lines to frontend\components\ask-sheet.tsx
+       1 "use client";
+       2 import { useEffect, useRef, useState } from "react";
+       3 import { api, send } from "@/lib/api";
+       4 import type { AskAnswer, Citation } from "@/lib/types";
+       5 import { canDictate, canListen, dictate, speak } from "@/lib/voi
+         ce";
+       6 import type { AskContext } from "./providers";
+       7 import { IconMic, IconSend, IconSpeaker } from "./icons";
+       8 import { BottomSheet } from "./ui";
+       9 
+     … +165 lines (ctrl+o to expand)
+
+● Write(frontend\components\shell.tsx)
+  ⎿  Wrote 94 lines to frontend\components\shell.tsx
+       1 "use client";
+       2 import { useQuery } from "@tanstack/react-query";
+       3 import Link from "next/link";
+       4 import { usePathname } from "next/navigation";
+       5 import { ReactNode, useEffect, useState } from "react";
+       6 import { api, onReplay, onSlow } from "@/lib/api";
+       7 import { IconAlerts, IconAsk, IconBell, IconBrief, IconPortfolio
+         , IconResearch } from "./icons";
+       8 import { AskContext, useSheets } from "./providers";
+       9 
+     … +85 lines (ctrl+o to expand)
+● Write(frontend\app\layout.tsx)
+  ⎿  Wrote 39 lines to frontend\app\layout.tsx
+       1 import type { Metadata, Viewport } from "next";
+       2 import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed, IBM_Plex_Serif 
+         } from "next/font/google";
+       3 import { Providers } from "@/components/providers";
+       4 import { Banners, BottomNav } from "@/components/shell";
+       5 import "./globals.css";
+       6 
+       7 // Three voices of one superfamily: FINN speaks in sans, numbers
+          in condensed, documents in serif.
+       8 const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400",
+     … +32 lines (~1 KB) (ctrl+o to expand)
+
+● Now the Brief (home) screen.
+
+● Write(frontend\components\event-row.tsx)
+  ⎿  Wrote 54 lines to frontend\components\event-row.tsx
+      1 "use client";
+      2 import Link from "next/link";
+      3 import type { EventCard } from "@/lib/types";
+      4 import { Num, Quote, Urgency } from "./ui";
+      5 
+      6 function impactTone(line: string | null) {
+      7   if (!line) return "text-ink-2";
+      8   return /[−-]₹/.test(line) ? "text-down" : /\+₹/.test(line) ? "t
+        ext-up" : "text-ink-2";
+      9 }
+     … +45 lines (ctrl+o to expand)
+
+● Write(frontend\components\listen.tsx)
+  ⎿  Wrote 51 lines to frontend\components\listen.tsx
+       1 "use client";
+       2 import { useEffect, useRef, useState } from "react";
+       3 import { api } from "@/lib/api";
+       4 import { canListen, speakParts } from "@/lib/voice";
+       5 import { IconPause, IconPlay } from "./icons";
+       6 
+       7 type Script = { text: string; parts: { id: number | null; text: 
+         string }[]; seconds: number };
+       8 
+       9 /** Audio brief: a templated script read by the phone's own voic
+     … +43 lines (~2 KB) (ctrl+o to expand)
+
+● Write(frontend\app\page.tsx)
+  ⎿  Wrote 179 lines to frontend\app\page.tsx
+       1 "use client";
+       2 import { useQuery } from "@tanstack/react-query";
+       3 import Link from "next/link";
+       4 import { useEffect, useState } from "react";
+       5 import { EventRow, FyiRow } from "@/components/event-row";
+       6 import { Listen } from "@/components/listen";
+       7 import { TopBar } from "@/components/shell";
+       8 import { BottomSheet, Button, Empty, ErrorLine, Num, SectionLabe
+         l, Segmented, Sheet, Skeleton } from "@/components/ui";
+       9 import { api, send } from "@/lib/api";
+     … +170 lines (ctrl+o to expand)
+
+● Event detail screen next.
+
+● Write(frontend\components\decide-sheet.tsx)
+  ⎿  Wrote 57 lines to frontend\components\decide-sheet.tsx
+       1 "use client";
+       2 import { useQueryClient } from "@tanstack/react-query";
+       3 import { useState } from "react";
+       4 import { send } from "@/lib/api";
+       5 import { canDictate, dictate } from "@/lib/voice";
+       6 import { IconMic } from "./icons";
+       7 import { BottomSheet, Button, Segmented } from "./ui";
+       8 
+       9 const ACTIONS = [
+      10   { value: "hold", label: "Hold" }, { value: "add", label: "Add"
+     … +48 lines (~2 KB) (ctrl+o to expand)
+
+● Write(frontend\app\event\[id]\page.tsx)
+  ⎿  Wrote 308 lines to frontend\app\event\[id]\page.tsx
+       1 "use client";
+       2 import { useQuery, useQueryClient } from "@tanstack/react-query"
+         ;
+       3 import Link from "next/link";
+       4 import { useParams, useRouter } from "next/navigation";
+       5 import { useState } from "react";
+       6 import { DecideSheet } from "@/components/decide-sheet";
+       7 import { IconBack } from "@/components/icons";
+       8 import { useSheets } from "@/components/providers";
+       9 import { TopBar } from "@/components/shell";
+     … +299 lines (ctrl+o to expand)
+
+● Company page (promises ledger, numbers, timeline, story, prep) next.
+
+● Write(frontend\components\research-progress.tsx)
+  ⎿  Wrote 46 lines to frontend\components\research-progress.tsx
+       1 "use client";
+       2 import { useQuery, useQueryClient } from "@tanstack/react-query"
+         ;
+       3 import { useEffect } from "react";
+       4 import { api } from "@/lib/api";
+       5 import type { ProgressStep } from "@/lib/types";
+       6 import { Num } from "./ui";
+       7 
+       8 type Status = { symbol: string; name?: string; status: string; p
+         rogress: ProgressStep[]; error: string | null };
+     … +38 lines (ctrl+o to expand)
+
+● Write(frontend\app\company\[symbol]\page.tsx)
+  ⎿  Wrote 398 lines to frontend\app\company\[symbol]\page.tsx
+       1 "use client";
+       2 import { useQuery, useQueryClient } from "@tanstack/react-query"
+         ;
+       3 import Link from "next/link";
+       4 import { useParams, useRouter, useSearchParams } from "next/navi
+         gation";
+       5 import { Suspense, useState } from "react";
+       6 import { DecideSheet } from "@/components/decide-sheet";
+       7 import { IconBack } from "@/components/icons";
+       8 import { useSheets } from "@/components/providers";
+     … +390 lines (ctrl+o to expand)
+
+● Now Portfolio, Research, Alerts and Inbox.
+
+● Write(frontend\app\portfolio\page.tsx)
+  ⎿  Wrote 91 lines to frontend\app\portfolio\page.tsx
+      1 "use client";
+      2 import { useQuery, useQueryClient } from "@tanstack/react-query";
+      3 import Link from "next/link";
+      4 import { useState } from "react";
+      5 import { TopBar } from "@/components/shell";
+      6 import { BottomSheet, Button, ErrorLine, Num, Segmented, Sheet, S
+        keleton, Toggle } from "@/components/ui";
+      7 import { api, send } from "@/lib/api";
+      8 import { rupees, signedPct, tone } from "@/lib/fmt";
+      9 import type { Holding } from "@/lib/types";
+     … +82 lines (ctrl+o to expand)
+
+● Write(frontend\app\research\page.tsx)
+  ⎿  Wrote 78 lines to frontend\app\research\page.tsx
+      1 "use client";
+      2 import { useQuery } from "@tanstack/react-query";
+      3 import Link from "next/link";
+      4 import { useRouter } from "next/navigation";
+      5 import { useState } from "react";
+      6 import { ResearchProgress } from "@/components/research-progress"
+        ;
+      7 import { TopBar } from "@/components/shell";
+      8 import { Button, Empty, ErrorLine, Sheet, Skeleton } from "@/comp
+        onents/ui";
+     … +70 lines (ctrl+o to expand)
+
+● Write(frontend\app\alerts\page.tsx)
+  ⎿  Wrote 158 lines to frontend\app\alerts\page.tsx
+       1 "use client";
+       2 import { useQuery, useQueryClient } from "@tanstack/react-query"
+         ;
+       3 import { useEffect, useState } from "react";
+       4 import { TopBar } from "@/components/shell";
+       5 import { Button, ErrorLine, Num, SectionLabel, Segmented, Sheet,
+          Skeleton, Toggle } from "@/components/ui";
+       6 import { api, send } from "@/lib/api";
+       7 import { enablePush, isIosNotInstalled } from "@/lib/push";
+       8 import type { Settings } from "@/lib/types";
+     … +150 lines (ctrl+o to expand)
+
+● Write(frontend\app\inbox\page.tsx)
+  ⎿  Wrote 41 lines to frontend\app\inbox\page.tsx
+       1 "use client";
+       2 import { useQuery, useQueryClient } from "@tanstack/react-query"
+         ;
+       3 import Link from "next/link";
+       4 import { useEffect } from "react";
+       5 import { TopBar } from "@/components/shell";
+       6 import { Empty, ErrorLine, Num, Sheet, Skeleton } from "@/compon
+         ents/ui";
+       7 import { api, send } from "@/lib/api";
+       8 import { day } from "@/lib/fmt";
+     … +33 lines (ctrl+o to expand)
+
+● PWA files (manifest, service worker, icons) and theme bootstrap, then build.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" &&
+      python -c "import PIL; print(PIL.__version__)"; cat > public/icon.svg
+      <<'EOF'
+      <svg xmlns="ht…)
+  ⎿  12.1.1
+     done
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" &&
+      python - <<'EOF'
+      from PIL import Image, ImageDraw, ImageFont…)
+  ⎿  ok
+
+● Update(frontend\app\layout.tsx)
+  ⎿  Added 5 lines, removed 1 line
+      24  
+      25  export default function RootLayout({ children }: { children: Re
+          act.ReactNode }) {
+      26    return (
+      27 -    <html lang="en-IN" className={`${sans.variable} ${num.varia
+         -ble} ${quote.variable}`}>                                      
+      27 +    <html lang="en-IN" className={`${sans.variable} ${num.varia
+         +ble} ${quote.variable}`} suppressHydrationWarning>             
+      28 +      <head>                                                   
+      29 +        {/* apply the saved light/dark choice before first pain
+         +t */}                                                          
+      30 +        <script dangerouslySetInnerHTML={{ __html: "try{var t=l
+         +ocalStorage.getItem('finn-theme');if(t&&t!=='system')document.d
+         +ocumentElement.setAttribute('data-theme',t)}catch(e){}" }} />  
+      31 +      </head>                                                  
+      32        <body>
+      33          <Providers>
+      34            <div className="mx-auto min-h-screen max-w-app pb-24"
+          >
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && npx
+      tsc --noEmit 2>&1 | head -30)
+  ⎿  lib/push.ts(28,72): error TS2322: Type 'Uint8Array<ArrayBufferLike>' i
+     s not assignable to type 'string | BufferSource | null | undefined'.
+       Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayB
+     … +6 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && sed
+      -i 's|function urlB64ToUint8Array(base64: string): Uint8Array {|function
+      urlB64ToUint8Ar…)
+  ⎿  TSC_OK
+        Creating an optimized production build ...
+      ✓ Compiled successfully
+     … +27 lines (ctrl+o to expand)
+
+● Build passes. Starting both servers to check the screens at phone size.
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" &&
+      SP="C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneDrive-Deskt
+      op-ENAM-AI-Assignme…)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && npx
+      next start -p 3000 > ../frontend-start.log 2>&1)
+  ⎿  Running in the background (↓ to manage)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && npx
+      playwright install chromium 2>&1 | tail -3; curl -s
+      localhost:8000/api/health | head -c…)
+  ⎿  |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     ■■■        |  90% of 123.2 MiB
+     |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     … +8 lines (ctrl+o to expand)
+
+● Writing the Playwright mobile smoke test (it also saves screenshots for the
+  design check).
+
+● Write(frontend\playwright.config.ts)
+  ⎿  Wrote 14 lines to frontend\playwright.config.ts
+       1 import { defineConfig } from "@playwright/test";
+       2 
+       3 // Mobile smoke test against a running app: BASE_URL (default ht
+         tp://localhost:3000) with the API behind it.
+       4 export default defineConfig({
+       5   testDir: "./tests",
+       6   timeout: 60_000,
+       7   use: { baseURL: process.env.BASE_URL || "http://localhost:3000
+         ", viewport: { width: 390, height: 844 },
+       8          deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+     … +6 lines (ctrl+o to expand)
+
+● Write(frontend\tests\mobile.spec.ts)
+  ⎿  Wrote 53 lines to frontend\tests\mobile.spec.ts
+       1 import { expect, Page, test } from "@playwright/test";
+       2 
+       3 const shots = process.env.SHOTS_DIR;
+       4 
+       5 async function shot(page: Page, name: string, project: string) {
+       6   if (shots) await page.screenshot({ path: `${shots}/${project}-
+         ${name}.png`, fullPage: true });
+       7 }
+       8 
+       9 async function noHorizontalScroll(page: Page) {
+     … +44 lines (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" &&
+      SP="C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneDrive-Deskt
+      op-ENAM-AI-Assignm…)
+  ⎿      Error Context: test-results\mobile-brief-event-company-ask-dark-39
+     0\error-context.md
+     … +38 lines (ctrl+o to expand)
+
+● Test selector issue only. Fixing it and looking at the screenshots.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" && sed
+      -i 's|page.getByLabel("Your question")|page.getByRole("textbox", { name:
+      "Your question"…)
+  ⎿  ok
+
+  Read 1 file (ctrl+o to expand)
+
+● Brief looks right (the nav bar in the middle is just how full-page screenshots
+  draw fixed elements). Checking event and company.
+
+  Read 1 file (ctrl+o to expand)
+
+● Dark mode and the ledger render correctly. One problem: "Guidance changed"
+  repeats too much. I'll cap it at the 2 most recent distinct revisions, then
+  rerun the test.
+
+● Update(backend\app\api\companies.py)
+  ⎿  Added 6 lines, removed 1 line
+      66                  cd = docs.get(ch.document_id) if ch else None
+      67                  item["url"] = doc_link(cd, ch.page_from) if ch 
+          else None
+      68              evidence.append(item)
+      69 -        revisions = [r for r in (p.repeats or []) if r.get("tar
+         -get_text") and r["target_text"] != p.target_text]              
+      69 +        revisions, seen = [], {p.target_text}                  
+      70 +        for r in reversed(p.repeats or []):  # latest first, on
+         +e row per distinct target                                      
+      71 +            if r.get("target_text") and r["target_text"] not in
+         + seen:                                                         
+      72 +                seen.add(r["target_text"])                     
+      73 +                revisions.append(r)                            
+      74 +        revisions = revisions[:2]                              
+      75          out.append({
+      76              "id": p.id, "metric": p.metric, "metric_key": p.met
+          ric_key, "made_in": p.made_in, "horizon": p.horizon,
+      77              "target_text": p.target_text, "target_low": p.targe
+          t_low, "target_high": p.target_high, "unit": p.unit,
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/frontend" &&
+      SP="C:/Users/lavan/AppData/Local/Temp/claude/C--Users-lavan-OneDrive-Deskt
+      op-ENAM-AI-Assignm…)
+  ⎿  Running 3 tests using 3 workers
+
+     [1/3] [dark-390] › tests\mobile.spec.ts:14:1 › brief, event, company,
+     … +6 lines (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● The test passes on all three viewports, and Ask now returns numbered
+  citations. The repeated revisions in the screenshot come from the API still
+  running the old code, so I'll restart it, then handle the repo files and
+  write-up draft. · summary
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && mkdir -p
+      .github/workflows docs && cat > .gitignore <<'EOF'
+      # secrets…)
+  ⎿  ok
+
+● Write(README.md)
+  ⎿  Wrote 73 lines to README.md
+      1 # FINN
+      2 
+      3 *FINN interrupts you only when your thesis might be broken. Every
+        thing else waits for a batched brief, and every claim links to it
+        s source.*
+      4 
+      5 A mobile-first investment agent for a concentrated portfolio of I
+        ndian stocks, with two modes:
+      6 
+      7 - **Push:** a windowed brief of NSE filings and EOD price/volume 
+     … +67 lines (~5 KB) (ctrl+o to expand)
+
+● Write(CLAUDE.md)
+  ⎿  Wrote 12 lines to CLAUDE.md
+      1 # FINN — working rules for Claude Code
+      2 - The spec is FINN_BUILD_SPEC.md; FINN_DESIGN_SYSTEM.md overrides
+         its section 12.2. Follow the milestone order (section 14) and cu
+        t order.
+      3 - Keep the app runnable after every milestone; commit with a clea
+        r message per milestone.
+      4 - Log decisions and surprises in BUILD_LOG.md (date, what, why).
+      5 - Never hard-code demo companies into logic. Research must work f
+        or any NSE ticker.
+      6 - Numbers are computed in Python; the LLM extracts and words, nev
+     … +7 lines (ctrl+o to expand)
+
+● Write(docs\WRITEUP.md)
+  ⎿  Wrote 42 lines to docs\WRITEUP.md
+      1 # FINN: covering note (draft)
+      2 
+      3 > Fields marked **[TO FILL]** need the deployed link, accounts or
+         measured numbers. They are left blank until those exist.
+      4 
+      5 **Deployed app:** [TO FILL: Vercel link]. On iPhone, add it to th
+        e Home Screen to receive push.
+      6 **Repo:** [TO FILL: GitHub link]
+      7 **AI build history:** [TO FILL: Claude conversation share links] 
+        plus `BUILD_LOG.md`.
+     … +35 lines (ctrl+o to expand)
+
+● Write(BUILD_LOG.md)
+  ⎿  Wrote 18 lines to BUILD_LOG.md
+      1 # Build log
+      2 
+      3 ## 12 Nov 2026, evening: M0–M3 backend
+      4 - Seed portfolio picked with `scripts/scout.py` for a demo-rich m
+        ix (results, KMP changes, ratings, large moves).
+      5 - Prices from Yahoo's chart endpoint (same data as yfinance) in p
+        arallel; sector indices fall back to Nifty when missing.
+      6 - NSE ingest with session warm-up; rule classifier with 19 catego
+        ries. Bootstrap: 370 filings, 360 events, about 82% classified by
+         rules.
+     … +12 lines (ctrl+o to expand)
+
+● Final check: stop the dev servers, rerun backend tests after the last edit,
+  and clean up stray files.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && for p in 8000
+      3000; do pid=$(netstat -ano | grep ":$p .*LISTENING" | awk '{print $5}' |
+      head -1); [ -…)
+  ⎿  stopped 8000
+     stopped 3000
+     ........................
+     … +2 lines (ctrl+o to expand)
+
+● Background command "Run backend API server on test DB" failed with exit code 1
+● Background command "Run frontend production server" failed with exit code 1
+
+● The rest of FINN is built and runs end to end on your laptop without any keys.
+  Everything that needs your input is left blank. It is not deployed yet, and
+  nothing is committed.
+
+  What I built this session
+  - Backend API: every endpoint in spec section 11 (brief, events, portfolio,
+    company pages, research, Ask, settings, decisions, push and inbox, cron
+    jobs, health, usage, source links), plus replay mode for demos.
+  - Ask without an LLM key: it quotes the best-matching sentences from the
+    transcripts and annual report, each with a numbered citation. Questions like
+    "What moved my portfolio?" are answered from stored prices and events.
+  - Frontend: a Next.js phone web app (installable, works offline, push-ready)
+    that follows FINN_DESIGN_SYSTEM.md. It has the Brief, Event, Company,
+    Portfolio, Research, Alerts and Inbox screens, plus the Ask, Decide and
+    Source sheets, the Listen button and dark mode.
+  - Repo files: README with run and deploy steps, CLAUDE.md, BUILD_LOG.md,
+    docs/WRITEUP.md, CI and scheduled-job workflows, a Render deploy file,
+    .gitignore, and .env.example files for both apps.
+
+  Checks I ran
+  - 24 backend tests pass on an empty database with no network.
+  - A smoke test of every endpoint against a copy of your real finn.db returned
+    no errors.
+  - Recording a replay snapshot and serving it back worked, with the replay
+    banner showing.
+  - The frontend builds and type-checks cleanly.
+  - The mobile test (Brief → event → company → Ask) passes at 390 px light, 390
+    px dark and 360 px, with no horizontal scrolling. I looked at the
+    screenshots.
+
+  Issues still open
+  - Ask quality without a key: it can pick up an analyst's question instead of
+    management's answer. With an LLM key it writes a proper cited answer.
+  - Promise extraction without a key: the keyword rules sometimes treat an
+    industry statement as a promise. In Polycab's ledger, a 3.2% economy
+    forecast shows up as revenue guidance. An LLM key fixes this too.
+  - Repeated "Guidance changed" rows: I capped these at the 2 most recent
+    distinct changes. The tests pass with the cap, but I haven't looked at it on
+    screen yet because the screenshots were taken before the change.
+  - No snapshot committed: backend/snapshots/ is empty. Replay mode needs a
+    snapshot recorded from a busy data window: python -m app.jobs.cli snapshot 
+    --label demo.
+
+  Left blank for you
+  - LLM key, web-search key and VAPID (push) keys go in backend/.env.example.
+  - GitHub repo, Render, Vercel and Neon accounts are needed to deploy.
+  - The deployed link, repo link, model names and cost per day go in the [TO 
+    FILL] spots in docs/WRITEUP.md. The cost number comes from /api/admin/usage
+    once a key is set.
+
+  Git: the git repository on this machine starts at your home folder
+  (C:\Users\lavan), not at the project, so I didn't commit. Once you create the
+  GitHub repo, run git init inside ENAM_AI_Assignment and commit there.
+
+  To run it: uvicorn app.main:app --port 8000 from backend/, then npm run dev
+  from frontend/.
+
+✻ Crunched for 28m 4s · done Friday 1:26 AM
+
+❯ my backend is not starting from the command that you gave, so give me ways to 
+  fix this error                                                                
+  PS C:\Users\lavan\OneDrive\Desktop\ENAM_AI_Assignment\backend> uvicorn        
+  app.main:app --port 8000                                                      
+  Program 'uvicorn.exe' failed to run: An Application Control policy has        
+  blocked this fileAt line:1 char:1                                             
+  - uvicorn app.main:app --port 8000                                            
+  -                                                                             
+  .                                                                             
+                                                                                
+  At line:1 char:1                                                              
+  - uvicorn app.main:app --port 8000                                            
+  -                                                                             
+    + CategoryInfo          : ResourceUnavailable: (:) [], ApplicationFailedE   
+   xception                                                                     
+    + FullyQualifiedErrorId : NativeCommandFailed                               
+
+● Windows Smart App Control is blocking uvicorn.exe, the small launcher file pip
+  creates. Python itself is allowed, so start uvicorn through Python instead:
+
+  cd C:\Users\lavan\OneDrive\Desktop\ENAM_AI_Assignment\backend
+  python -m uvicorn app.main:app --port 8000
+
+  That's the command I used for testing earlier in this session, and it started
+  fine. Add --reload if you want it to restart when files change. Then open
+  http://localhost:8000/api/health to check it's up.
+
+  I'll also fix the README so it uses the same form.
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment" && sed -i
+      's|^uvicorn app.main:app --reload --port 8000|python -m uvicorn
+      app.main:app --reload --port 8…)
+  ⎿  42:python -m uvicorn app.main:app --reload --port 8000   # python -m a
+     voids Windows blocking uvicorn.exe
+
+● I updated the README to use the python -m uvicorn command.
+
+  If that is blocked too, try these in order:
+
+  1. Check which Python you're running. Run where.exe python. If the first
+     result is under ...\WindowsApps\, that's the Microsoft Store placeholder,
+     not your real install. Use the full path instead:
+     C:\Users\lavan\AppData\Local\Programs\Python\Python311\python.exe -m 
+     uvicorn app.main:app --port 8000.
+  2. Use a virtual environment. From backend/, run python -m venv .venv, then
+     .venv\Scripts\python.exe -m pip install -r requirements.txt, then
+     .venv\Scripts\python.exe -m uvicorn app.main:app --port 8000.
+  3. Turn off Smart App Control. Go to Windows Security → App & browser control
+     → Smart App Control settings → Off. This is a last resort: Windows won't
+     let you turn it back on without resetting the PC.
+
+  The same block can hit other pip launchers like pytest.exe, so run them as
+  python -m pytest as well. Node tools like npm and npx don't use these
+  launchers and should run normally.
+
+✻ Crunched for 25s · done Friday 1:38 AM
+
+❯ yeah all the endpoints are working as expected now I want to know when the    
+  alerts will be given to me and also the "could" part in the                   
+  FINN_BUILD_SPEC.md file like the telegram integration and all is done or not? 
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Bash(cd "C:/Users/lavan/OneDrive/Desktop/ENAM_AI_Assignment/backend" && sed -n
+      160,175p app/push/ingest.py; grep -rli telegram app ../frontend/app
+      ../frontend/compon…)
+  ⎿      # phase 3: enrich and score, oldest first so cluster checks see hi
+     story
+         new.sort(key=lambda cf: cf[1].published_at)
+     … +14 lines (ctrl+o to expand)
+
+● When alerts reach you
+
+  Alerts reach you only when a job runs and finds new data. Nothing watches
+  live, so FINN never sends anything in real time.
+
+  When the jobs run. Once cron.yml is deployed, the jobs run at these times
+  (IST):
+
+  ┌────────────────┬──────────────────────────┬─────────────────────────────┐
+  │      Job       │           When           │     What it can produce     │
+  ├────────────────┼──────────────────────────┼─────────────────────────────┤
+  │ ingest_filings │ Hourly, 09:00–20:00,     │ New NSE filings become      │
+  │                │ weekdays                 │ events                      │
+  ├────────────────┼──────────────────────────┼─────────────────────────────┤
+  │ eod_prices     │ 18:30 weekdays, after    │ Price moves, volume spikes, │
+  │                │ market close             │  tripwire hits              │
+  ├────────────────┼──────────────────────────┼─────────────────────────────┤
+  │ build_digest   │ 07:30 and 19:00          │ The brief you open in the   │
+  │                │                          │ app                         │
+  └────────────────┴──────────────────────────┴─────────────────────────────┘
+
+  On your laptop nothing is scheduled yet. Alerts appear only when you run a CLI
+  command such as python -m app.jobs.cli ingest --days 2.
+
+  What actually notifies you. Only urgent items, which the scoring code calls
+  P0, notify you (inbox, plus phone push once VAPID keys are set). Some
+  examples:
+  - Auditor resignation or payment default: always urgent.
+  - CEO, MD or CFO resignation.
+  - Results with profit after tax (PAT) moving more than 20% year on year, or
+    margin more than 3 points off guidance.
+  - A user override that sets a category to Urgent.
+
+  The other tiers wait for the brief: "Today" (P1) items go in "Needs you
+  today", P2 in "For your information", and P3 is counted as routine. During
+  quiet hours (22:00–07:00) urgent items still come through unless you turn that
+  off in Alerts.
+
+  A gap I found while checking. Only urgent filings send a notification. That
+  call is in push/ingest.py:170. Two other kinds of urgent event are created but
+  never notify you:
+  - urgent price moves (a move bigger than your portfolio-impact limit)
+  - tripwire hits
+
+  They do show up as Urgent in the brief, but no push or inbox entry is sent.
+  The spec (13.1) says every urgent event should notify. The fix is about 4
+  lines, in price_signals.py and tripwires.py. Both are existing modules, so
+  I'll wait for your go-ahead before changing them.
+
+  The "Could" items
+
+  Only Share is done. The rest weren't built because the spec says to cut them
+  first if time is short.
+
+  ┌──────────────────────┬──────────────────────────────────────────────────┐
+  │      Could item      │                      Status                      │
+  ├──────────────────────┼──────────────────────────────────────────────────┤
+  │ Share card (Web      │ Done. The Share button on the event page, with   │
+  │ Share API)           │ copy-to-clipboard as fallback                    │
+  ├──────────────────────┼──────────────────────────────────────────────────┤
+  │ Telegram bot for     │ Not done                                         │
+  │ urgent items         │                                                  │
+  ├──────────────────────┼──────────────────────────────────────────────────┤
+  │ Swipe mode for the   │ Not done                                         │
+  │ brief                │                                                  │
+  ├──────────────────────┼──────────────────────────────────────────────────┤
+  │ BSE fallback source  │ Not done. NSE is the only source; if it blocks,  │
+  │                      │ ingest from your laptop                          │
+  ├──────────────────────┼──────────────────────────────────────────────────┤
+  │ Insider/SAST trades  │ Partial. They're classified and scored, but      │
+  │                      │ there's no dedicated card                        │
+  ├──────────────────────┼──────────────────────────────────────────────────┤
+  │ Bulk/block deals     │ Not done                                         │
+  └──────────────────────┴──────────────────────────────────────────────────┘
+
+  Want me to fix the notification gap? I can also add the Telegram bot if you
+  want it. You'd need to create a bot with @BotFather and give me its token and
+  your chat ID, so that's another "provide later" item.
+
+✻ Worked for 41s · done Friday 1:50 AM
+
+❯ just tell in brief like I have to first deploy this along with cron file on   
+  the github and then that will run the if new alerts or not? what are the      
+  other steps or things that are required for all the tasks that I listed to be 
+  completed                                                                     
+
+● Yes. Once the app is deployed and cron.yml is on GitHub, the scheduled jobs
+  check NSE and prices on their own. Urgent items then reach your inbox and
+  phone; everything else appears in the brief. Until then, nothing runs unless
+  you start a job by hand.
+
+  Steps, in order:
+
+  1. Get the keys.
+     - LLM key (free tier): Gemini is the default; put it in LLM_API_KEY.
+       Without it FINN still runs, but Ask and promise extraction are weaker.
+     - VAPID keys: run npx web-push generate-vapid-keys. Without them alerts go
+       only to the in-app inbox, not your phone.
+     - Web-search key (optional): Tavily or Brave, used for management bios.
+  2. Push to GitHub. Run git init inside ENAM_AI_Assignment (not your home
+     folder), then commit and push to a new repo.
+  3. Create the database. Make a free Postgres database on Neon and copy its
+     URL.
+  4. Deploy the backend on Render from render.yaml. Set DATABASE_URL, JOB_TOKEN
+     (any long random string), FRONTEND_ORIGIN, and the keys from step 1.
+  5. Deploy the frontend on Vercel from frontend/, with NEXT_PUBLIC_API_BASE set
+     to your Render URL.
+  6. Add GitHub repo secrets FINN_API (the Render URL) and JOB_TOKEN. The cron
+     jobs only run once these exist.
+  7. Load the data once from your laptop. Point DATABASE_URL at Neon, then run
+     python -m app.jobs.cli bootstrap. Run it from the laptop because NSE often
+     blocks cloud servers.
+  8. Record the demo snapshot. Run python -m app.jobs.cli snapshot --label demo
+     and commit backend/snapshots/demo.json, so replay mode has data.
+  9. Test on your phone. Open the Vercel link, add it to the Home Screen (needed
+     for push on iPhone), go to Alerts → Enable push, then Send test alert.
+  10. Fill the write-up. Add the deployed link, repo link and the cost from
+      /api/admin/usage to the [TO FILL] spots in docs/WRITEUP.md, then email it.
+
+  If NSE blocks Render (likely), the hourly filing job will fail in the cloud.
+  Prices still update. Run python -m app.jobs.cli ingest from your laptop with
+  DATABASE_URL pointing at Neon; it's the same code writing to the same
+  database.
+
+  Still needed from my side:
+  - The 4-line fix so urgent price moves and tripwire hits also notify you. Say
+    yes and I'll do it.
+  - Telegram and the other "Could" items, only if you want them.
+
+✻ Baked for 16s · done Friday 1:55 AM
