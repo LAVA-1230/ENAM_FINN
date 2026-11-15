@@ -11,6 +11,12 @@ A mobile-first investment agent for a concentrated portfolio of Indian stocks, w
 - Write-up: [docs/WRITEUP.md](docs/WRITEUP.md)
 - Spec: [FINN_BUILD_SPEC.md](FINN_BUILD_SPEC.md) and [FINN_DESIGN_SYSTEM.md](FINN_DESIGN_SYSTEM.md)
 
+## AI build history
+
+- **Claude (chat) logs:** https://claude.ai/share/2cd1e498-7f51-4f29-8598-6fa280d04821
+- **Claude Code logs:** the dated `.txt` files in the repository root (`2026-11-12-…txt` to `2026-11-15-…txt`), exported from each Claude Code session with `/export`. Database credentials in them are replaced with `<redacted>`.
+- Decisions and surprises along the way: [BUILD_LOG.md](BUILD_LOG.md)
+
 ## Architecture
 
 ```
@@ -32,21 +38,30 @@ A mobile-first investment agent for a concentrated portfolio of Indian stocks, w
 
 ## Run locally
 
+**Prerequisites:** Python 3.11, Node.js 20, and internet access (bootstrap downloads prices from Yahoo and filings from NSE and screener.in). No accounts or keys are needed: the default database is a local SQLite file.
+
 ```bash
-# backend
+# backend (terminal 1)
 cd backend
 python -m venv .venv && .venv\Scripts\activate      # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-copy .env.example .env                              # fill in keys; blanks are fine
-python -m app.jobs.cli bootstrap                    # seed + 120 days of prices + 30 days of filings + research demo set
+copy .env.example .env                              # macOS/Linux: cp .env.example .env. Keys are optional (see below)
+python -m app.jobs.cli bootstrap                    # seed + 120 days of prices + 30 days of filings + research demo set (takes several minutes)
 python -m uvicorn app.main:app --reload --port 8000   # python -m avoids Windows blocking uvicorn.exe
 
-# frontend
+# frontend (terminal 2)
 cd frontend
 npm install
-copy .env.example .env.local                        # NEXT_PUBLIC_API_BASE=http://localhost:8000
-npm run dev                                         # http://localhost:3000
+copy .env.example .env.local                        # macOS/Linux: cp .env.example .env.local. Sets NEXT_PUBLIC_API_BASE=http://localhost:8000
+npm run dev                                         # open http://localhost:3000 (use the browser's phone view, e.g. 390x844)
 ```
+
+**Optional keys in `backend/.env`:**
+- `LLM_PROVIDER` + `LLM_API_KEY`: LLM wording, Ask and bull vs bear. Gemini's free tier is enough.
+- `WEBSEARCH_PROVIDER` + `WEBSEARCH_API_KEY` (Tavily or Brave): web bios for management changes.
+- `VAPID_*`: web push. `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`: urgent alerts on Telegram. `CHECKIN_HOURS`: periodic portfolio check-in.
+
+To research a company outside the demo set, type any NSE symbol on the Research tab, or run `python -m app.jobs.cli research <SYMBOL>`.
 
 Other CLI jobs: `ingest --days 2`, `eod --days 10`, `research <SYMBOL>`, `tripwires`, `snapshot --label demo`.
 
